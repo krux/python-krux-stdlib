@@ -1,0 +1,33 @@
+# Krux' python repo
+--extra-index-url https://staticfiles.krxd.net/foss/pypi/
+
+# sphinx (for API documentation)
+Sphinx==1.2b1
+# needed by sphinx
+Jinja2==2.6
+# needed by sphinx
+Pygments==1.6
+docutils==0.10
+
+# stats
+kruxstatsd==0.2.2
+statsd==2.0.3
+
+# Latest tested versions
+argparse==1.2.1
+GitPython==0.3.2.RC1
+simplejson==3.3.0
+tornado==3.0.1
+# for lockfiles in cli
+lockfile==0.9.1
+
+# Test libraries
+coverage==3.6
+mock==1.0.1
+nose==1.2.1
+
+## The following requirements were added by pip --freeze:
+async==0.6.1
+fudge==1.0.3
+gitdb==0.5.4
+smmap==0.8.2
