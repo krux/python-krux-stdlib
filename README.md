@@ -8,8 +8,9 @@ https://staticfiles.krxd.net/foss/docs/pypi/krux-stdlib/
 1.  Add the Krux pip repository and python-krux-stdlib to the top of
     your project's `requirements.pip` file:
 
+        ### Optional - also available on PyPi
         --extra-index-url https://staticfiles.krxd.net/foss/pypi/
-        krux-stdlib==0.7.4
+        krux-stdlib==0.8.1
 
 ## Developing python-krux-stdlib
 
