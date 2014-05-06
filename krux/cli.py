@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013 Krux Digital, Inc.
+# © 2013-2014 Krux Digital, Inc.
 #
 """
 This module provides tools for handling command-line arguments for a Krux
@@ -141,10 +141,19 @@ class Application(object):
             or lockfile
 
         ### this will throw an execption if anything goes wrong
-        self.lockfile = FileLock(_lockfile)
-        self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
+        try:
+            self.lockfile = FileLock(_lockfile)
+            self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
 
-        self.logger.debug("Acquired lock: %s" % self.lockfile.path)
+            self.logger.debug("Acquired lock: %s" % self.lockfile.path)
+        except self.lockfile.LockTimeout, err:
+            self.logger.debug("Lockfile timeout occurred.")
+            self.stats.incr("errors.lockfile_timeout")
+            raise
+        except:
+            self.logger.debug("Unhandled exception while acquiring lockfile.")
+            self.stats.incr("errors.lockfile_unhandled")
+            raise
 
         def ___release_lockfile(self):
             self.logger.debug("Releasing lock: %s" % self.lockfile.path)
