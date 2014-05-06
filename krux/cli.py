@@ -144,14 +144,17 @@ class Application(object):
         try:
             self.lockfile = FileLock(_lockfile)
             self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
-
             self.logger.debug("Acquired lock: %s" % self.lockfile.path)
         except self.lockfile.LockTimeout, err:
-            self.logger.debug("Lockfile timeout occurred.")
+            self.logger.warning("Lockfile timeout occurred: {0}".format(err))
             self.stats.incr("errors.lockfile_timeout")
             raise
         except:
-            self.logger.debug("Unhandled exception while acquiring lockfile.")
+            self.logger.warning(
+                    "Unhandled exception while acquiring lockfile at {0} ".format(
+                        self.lockfile.path
+                    )
+            )
             self.stats.incr("errors.lockfile_unhandled")
             raise
 
