@@ -12,6 +12,10 @@ from __future__ import absolute_import
 from unittest import TestCase
 
 from logging import Logger
+from time    import time
+
+import os
+import sys
 
 #########################
 # Third Party Libraries #
@@ -23,7 +27,8 @@ from nose.tools import assert_equal, assert_true
 ######################
 # Internal Libraries #
 ######################
-from krux.stats import DummyStatsClient
+from krux.stats     import DummyStatsClient
+from krux.constants import DEFAULT_LOCK_DIR
 
 import krux.cli as cli
 
@@ -162,3 +167,45 @@ class TestApplication(TestCase):
         app.exit(0)
 
         assert_true(mock_logger.exception.called)
+
+###
+### Test krux.cli.Application
+###
+
+def test_application():
+    """
+    Test getting an Application from krux.cli
+    """
+
+    ### Vanilla app
+    app = cli.Application(name = __name__)
+    assert_true(app)
+    assert_true(app.parser)
+    assert_true(app.stats)
+    assert_true(app.logger)
+
+def test_application_locks():
+    ### just to make sure stale runs don't interfere
+    name = __name__ + str(time())
+
+    ### Now with lockfile
+    app = cli.Application(name = name, lockfile = True)
+    assert_true(app)
+    assert_true(app.lockfile)
+
+    ### This will use the same lockfile, as it's based on pid.
+    ### so this should work
+    app = cli.Application(name = name, lockfile = True)
+    assert_true(app)
+    assert_true(app.lockfile)
+
+    ### needed to clean up lock file, or /tmp will get littered.
+    app._run_exit_hooks()
+
+    ### XXX ideally we'd have a failure test in here as well, but
+    ### because of the way it's implemented LockFile won't fail if
+    ### the same pid tries to get the same lock twice:
+    ### http://pydoc.net/Python/lockfile/0.9.1/lockfile.linklockfile/
+    ### suggestions welcome!
+
+
