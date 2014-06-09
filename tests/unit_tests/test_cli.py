@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013 Krux Digital, Inc.
+# © 2013, 2014 Krux Digital, Inc.
 #
 """
 Unit tests for the krux.cli module.
@@ -178,7 +178,8 @@ def test_application():
     """
 
     ### Vanilla app
-    app = cli.Application(name = __name__)
+    with patch('sys.argv', [__name__]):
+        app = cli.Application(name = __name__)
     assert_true(app)
     assert_true(app.parser)
     assert_true(app.stats)
@@ -189,23 +190,23 @@ def test_application_locks():
     name = __name__ + str(time())
 
     ### Now with lockfile
-    app = cli.Application(name = name, lockfile = True)
-    assert_true(app)
-    assert_true(app.lockfile)
+    with patch('sys.argv', [__name__]):
+        app = cli.Application(name = name, lockfile = True)
 
-    ### This will use the same lockfile, as it's based on pid.
-    ### so this should work
-    app = cli.Application(name = name, lockfile = True)
-    assert_true(app)
-    assert_true(app.lockfile)
+        assert_true(app)
+        assert_true(app.lockfile)
 
-    ### needed to clean up lock file, or /tmp will get littered.
-    app._run_exit_hooks()
+        ### This will use the same lockfile, as it's based on pid.
+        ### so this should work
+        app = cli.Application(name = name, lockfile = True)
+        assert_true(app)
+        assert_true(app.lockfile)
 
-    ### XXX ideally we'd have a failure test in here as well, but
-    ### because of the way it's implemented LockFile won't fail if
-    ### the same pid tries to get the same lock twice:
-    ### http://pydoc.net/Python/lockfile/0.9.1/lockfile.linklockfile/
-    ### suggestions welcome!
+        ### needed to clean up lock file, or /tmp will get littered.
+        app._run_exit_hooks()
 
-
+        ### XXX ideally we'd have a failure test in here as well, but
+        ### because of the way it's implemented LockFile won't fail if the
+        ### same pid tries to get the same lock twice:
+        ### http://pydoc.net/Python/lockfile/0.9.1/lockfile.linklockfile/
+        ### suggestions welcome!
