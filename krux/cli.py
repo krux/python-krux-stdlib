@@ -40,6 +40,7 @@ from functools import partial
 from sys import exit
 
 import os.path
+import __main__
 
 #########################
 # Third Party Libraries #
@@ -322,3 +323,14 @@ def get_parser(description="Krux CLI", logging=True, stats=True, **kwargs):
         parser = add_stats_args(parser)
 
     return parser
+
+def get_script_name():
+    # get the name of the script, without an extension
+    name = os.path.splitext(os.path.basename(__main__.__file__))[0]
+    # and replace underscores with dashes
+    name = name.replace('_', '-')
+
+    return name
+
+
+
