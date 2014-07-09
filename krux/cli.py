@@ -46,7 +46,7 @@ import __main__
 # Third Party Libraries #
 #########################
 from argparse import ArgumentParser
-from lockfile import FileLock
+from lockfile import FileLock, LockError, UnlockError
 
 ######################
 # Internal Libraries #
@@ -146,9 +146,9 @@ class Application(object):
             self.lockfile = FileLock(_lockfile)
             self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
             self.logger.debug("Acquired lock: %s" % self.lockfile.path)
-        except self.lockfile.LockTimeout, err:
-            self.logger.warning("Lockfile timeout occurred: %s" % err)
-            self.stats.incr("errors.lockfile_timeout")
+        except LockError as err:
+            self.logger.warning("Lockfile error occurred: %s" % err)
+            self.stats.incr("errors.lockfile_lock")
             raise
         except:
             self.logger.warning(
@@ -159,7 +159,13 @@ class Application(object):
 
         def ___release_lockfile(self):
             self.logger.debug("Releasing lock: %s" % self.lockfile.path)
-            self.lockfile.release()
+
+            try:
+                self.lockfile.release()
+            except UnlockError as err:
+                self.logger.warning("Lockfile error occurred unlocking: %s" % err)
+                self.stats.incr("errors.lockfile_unlock")
+                raise
 
         ### release the hook when we're done
         self.add_exit_hook( ___release_lockfile, self )

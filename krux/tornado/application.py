@@ -62,7 +62,8 @@ import signal
 ######################
 # Internal Libraries #
 ######################
-from krux.tornado.handlers import ErrorHandler, StatusHandler
+from krux.tornado.handlers import ErrorHandler, StatusHandler, \
+                                  RequestHandler, NoContentHandler
 
 import krux.stats
 import krux.logging
@@ -342,8 +343,57 @@ class Application(tornado.web.Application):
         self.logger.info("*** Received signal: %s" % sig)
         self.stop()
 
+### A simple test application. Besides the URLs below, you can also
+### hit /test/__status for the status handler and /test/asdfasdfadsf
+### for the fallback handler
+def main():
+
+
+    class MyOkHandler(RequestHandler):
+        def get(self):
+            self.add_header('Cache-Control', 'max-age=777')
+            self.write('OK')
+
+    class MyErrorHandler(RequestHandler):
+        def get(self):
+            ### Hardcoded cache control, override with CLI args
+            self.add_header('Cache-Control', 'max-age=666')
+            raise Exception("Error")
+
+    class MyNotFoundHandler(RequestHandler):
+        def set_default_headers(self):
+            ### This will ALWAYS set cache-control, regardless
+            ### of error or not.
+            self.set_header('Cache-Control', 'max-age=444')
+
+        def get(self):
+            ### Hardcoded cache control, override with CLI args
+            self.add_header('Cache-Control', 'max-age=555')
+
+            ### This will remove the cache-control header set
+            ### in get() but not in set_default_headers()
+            self.send_error(404)
+
+            ### This will not remove either cache-control header
+            #self.set_status(404)
+
+    class MyNoContent(NoContentHandler):
+        pass
+
+    app = Application(
+        name     = 'test_app',
+        endpoint = '/test',
+        handlers = [
+            (r'/test/ok/?',        MyOkHandler),
+            (r'/test/error/?',     MyErrorHandler),
+            (r'/test/nocontent/?', MyNoContent),
+            (r'/test/notfound/?',  MyNotFoundHandler),
+        ]
+    )
+
+    app.start()
 
 ### Run the application stand alone, this is for testing purposes only
 if __name__ == '__main__':
-    app = Application(name='test_app', endpoint='/test')
-    app.start()
+    main()
+
