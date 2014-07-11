@@ -61,6 +61,7 @@ from krux.constants import (
     DEFAULT_LOCK_TIMEOUT,
 )
 
+import krux.io
 import krux.stats
 import krux.logging
 
@@ -124,6 +125,9 @@ class Application(object):
             host=getattr(self.args, 'stats_host', None),
             port=getattr(self.args, 'stats_port', None),
         )
+
+        ### Set up an krux.io object so we can run external commands
+        self.io = krux.io.IO( logger = self.logger, stats = self.stats )
 
         ### Exit hooks are run when the exit() method is called.
         self._exit_hooks = []
