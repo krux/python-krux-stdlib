@@ -1,6 +1,9 @@
 # Krux' python repo
 --extra-index-url https://staticfiles.krxd.net/foss/pypi/
 
+# Simple templating engine
+pystache==0.5.4
+
 # sphinx (for API documentation)
 Sphinx==1.2b1
 # needed by sphinx
