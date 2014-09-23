@@ -11,7 +11,21 @@ Classes & Functions for email.
 from __future__ import absolute_import
 from email.mime.text import MIMEText
 
-import smtplib
+# I import all of these exception types so that users of the sendmail
+# function can import them from this module instead of magically knowing
+# where they come from in the standard library.
+from smtplib import (
+    SMTP,
+    SMTPException,
+    SMTPServerDisconnected,
+    SMTPResponseException,
+    SMTPSenderRefused,
+    SMTPRecipientsRefused,
+    SMTPDataError,
+    SMTPConnectError,
+    SMTPHeloError,
+    SMTPAuthenticationError,
+)
 
 #####################
 # General Libraries #
@@ -91,5 +105,3 @@ def sendmail(
 
     # Send the email.
     smtp_connection.sendmail(sender, recipients, email.as_string())
-
-    return email
