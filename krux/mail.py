@@ -110,9 +110,13 @@ def sendmail(
     if smtp_connection is None:
         smtp_connection = SMTP(smtp_host)
 
-    # Render the subject/body templates.
-    subject = pystache.render(subject, template_args)
-    body = pystache.render(body, template_args)
+    # Render the subject/body templates. We have to ascii-encode the
+    # results because the call to email.as_string below will fail if either
+    # of these contain utf8-encoded substrings.
+    #
+    # We just ignore any characters that can't be ASCII-encoded.
+    subject = pystache.render(subject, template_args).encode('ascii', 'ignore')
+    body = pystache.render(body, template_args).encode('ascii', 'ignore')
 
     # Construct the email message object.
     email = MIMEText(body)
