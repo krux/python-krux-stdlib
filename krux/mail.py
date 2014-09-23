@@ -86,7 +86,7 @@ def sendmail(
     This function may raise an smtplib.SMTPException for many failure cases
     - see the smtplib documentation for details.
 
-    This function returns an email.mime.MimeText object representing the
+    This function returns an email.mime.MIMEText object representing the
     email that was sent.
     """
     if isinstance(recipients, basestring):
@@ -115,7 +115,7 @@ def sendmail(
     body = pystache.render(body, template_args)
 
     # Construct the email message object.
-    email = MimeText(body)
+    email = MIMEText(body)
     email[ 'Subject' ] = subject
     email[ 'From' ] = sender
     email[ 'To' ] = ','.join(recipients)
