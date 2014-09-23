@@ -42,6 +42,8 @@ def sendmail(
         recipients,
         subject,
         body,
+        bcc=None,
+        headers=None,
         template_args=None,
         smtp_host=None,
         smtp_connection=None,
@@ -60,6 +62,12 @@ def sendmail(
 
     BODY will be rendered using pystache.render and the given TEMPLATE_ARGS
     (if any); the result will be used as the body of the email.
+
+    BCC is optional; if given this should be an email address or a list of
+    email addresses; these will be BCC'ed on the email.
+
+    HEADERS is optional; if given this should be a dict-like object of
+    headers which will be added to the email.
 
     TEMPLATE_ARGS is optional; if given this should be a dict-like object
     which will be passed to pystache.render to be interpolated in the
@@ -81,6 +89,18 @@ def sendmail(
     This function returns an email.mime.MimeText object representing the
     email that was sent.
     """
+    if isinstance(recipients, basestring):
+        recipients = [ recipients ]
+
+    if bcc is None:
+        bcc = []
+
+    if isinstance(bcc, basestring):
+        bcc = [ bcc ]
+
+    if headers is None:
+        headers = {}
+
     if template_args is None:
         template_args = {}
 
@@ -89,9 +109,6 @@ def sendmail(
 
     if smtp_connection is None:
         smtp_connection = SMTP(smtp_host)
-
-    if isinstance(recipients, basestring):
-        recipients = [ recipients ]
 
     # Render the subject/body templates.
     subject = pystache.render(subject, template_args)
@@ -103,5 +120,9 @@ def sendmail(
     email[ 'From' ] = sender
     email[ 'To' ] = ','.join(recipients)
 
-    # Send the email.
-    smtp_connection.sendmail(sender, recipients, email.as_string())
+    # Add additional headers requested by the user.
+    for header, value in headers.iteritems():
+        email[header] = value
+
+    # Send the email to the primary recipients and to the BCC'ed recipients
+    smtp_connection.sendmail(sender, recipients + bcc, email.as_string())
