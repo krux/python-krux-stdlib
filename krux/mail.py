@@ -10,6 +10,7 @@ Classes & Functions for email.
 ######################
 from __future__ import absolute_import
 from email.mime.text import MIMEText
+from email.header import Header
 
 # I import all of these exception types so that users of the sendmail
 # function can import them from this module instead of magically knowing
@@ -35,6 +36,28 @@ import pystache
 ####################
 # Internal Imports #
 ####################
+
+
+CHARSET = 'utf-8'
+
+
+def ascii_encodable(text):
+    """
+    Return True if the given TEXT can be losslessly encoded in
+    ASCII. Otherwise, return False.
+    """
+    return all(ord(char) < 128 for char in text)
+
+
+def add_header(message, name, value):
+    """
+    Add a (properly encoded) header NAME with value VALUE to the given
+    MESSAGE object.
+    """
+    if not ascii_encodable(value):
+        value = Header(value, CHARSET)
+
+    message[name] = value
 
 
 def sendmail(
@@ -115,15 +138,24 @@ def sendmail(
     body = pystache.render(body, template_args)
 
     # Construct the email message object. This is a plain-text email
-    # ('plain' arg.) using the UTF8 character set ('utf-8' arg.)
-    email = MIMEText(body, 'plain', 'utf-8')
-    email[ 'Subject' ] = subject
-    email[ 'From' ] = sender
-    email[ 'To' ] = ','.join(recipients)
+    # ('plain' arg.)
+    #
+    # We have to make sure we handle encoding correctly, so we check if the
+    # text can be ASCII-encoded, and use the global CHARSET otherwise.
+    if ascii_encodable(body):
+        email = MIMEText(body, 'plain')
+    else:
+        email = MIMEText(body.encode(CHARSET), 'plain', CHARSET)
+
+    # Add the basic mail headers. They will be properly encoded by
+    # add_header.
+    add_header(email, 'Subject', subject)
+    add_header(email, 'From', sender)
+    add_header(email, 'To', ','.join(recipients))
 
     # Add additional headers requested by the user.
     for header, value in headers.iteritems():
-        email[header] = value
+        add_header(email, header, value)
 
     # Send the email to the primary recipients and to the BCC'ed recipients
     smtp_connection.sendmail(sender, recipients + bcc, email.as_string())
