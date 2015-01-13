@@ -82,8 +82,10 @@ class IORunCmd(object):
 
         log.debug('Applying output filters: %s' % [r.pattern for r in filters])
 
-        # use shell param if set, otherwise use shell if we were passed a string
-        # i.e. let the shell parse the string rather than just splitting it
+        # Use shell param if set, otherwise use shell if we were passed a string
+        # so that the shell can parse it and support quoted or escaped arguments
+        # properly, such as:
+        #  cat "/var/log/foo bar.log" /var/log/baz\ .log
         if shell is None:
             shell = isinstance(command, basestring)
 
