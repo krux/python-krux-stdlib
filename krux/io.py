@@ -65,7 +65,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = []):
+    def run(self, command, filters = [], shell = None):
         log     = self.___logger
         stats   = self.___stats
 
@@ -82,16 +82,21 @@ class IORunCmd(object):
 
         log.debug('Applying output filters: %s' % [r.pattern for r in filters])
 
-        try:
-            ### If you already gave us a list, great. Otherwise, split on whitespace.
-            command = command if isinstance(command, (list, tuple)) else command.split()
+        # use shell param if set, otherwise use shell if we were passed a string
+        # i.e. let the shell parse the string rather than just splitting it
+        if shell is None:
+            shell = isinstance(command, basestring)
 
+        try:
             process = subprocess.Popen(
                             command,
                             stderr = subprocess.PIPE,
-                            stdout = subprocess.PIPE
+                            stdout = subprocess.PIPE,
+                            shell = shell
                          )
 
+            # Note that using communicate() buffers all output in memory and can
+            # hang if the buffer is filled.
             stdout, stderr = process.communicate()
 
             ### set the bookkeeping variables.
@@ -126,7 +131,7 @@ class IORunCmd(object):
                         ### so caller can inspect them
                         ignore or outputs[2].append(s)
 
-                    ### print the entire line
+                    ### print the entire output buffer
                     len(outputs[2]) and outputs[0]('%s: %s' % (label, "\n".join(outputs[2])))
 
             if not self.ok:
