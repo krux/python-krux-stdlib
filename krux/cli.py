@@ -86,7 +86,7 @@ class Application(object):
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False):
+    def __init__(self, name, parser=None, logger=None, lockfile=False, cli_args=None):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -96,6 +96,8 @@ class Application(object):
 
         :keyword parser: The CLI parser. Defaults to
         :py:func:`cli.get_parser <krux.cli.get_parser>`
+
+        :keyword cli_args: The cli arguments. when it = '', no any argument will be passed to CLI application.
         """
 
         ### note our name
@@ -108,7 +110,7 @@ class Application(object):
         self.add_cli_arguments(self.parser)
 
         ### and parse them
-        self.args = self.parser.parse_args()
+        self.args = self.parser.parse_args(cli_args)
 
         ### get a logger - is there a way to to have logger be relative to the
         ### invocation of the log call?
