@@ -110,7 +110,7 @@ class Application(object):
         self.add_cli_arguments(self.parser)
 
         ### and parse them
-        self.args = self.parser.parse_args(cli_args)
+        self.args = self.parser.parse_args(args=cli_args)
 
         ### get a logger - is there a way to to have logger be relative to the
         ### invocation of the log call?
