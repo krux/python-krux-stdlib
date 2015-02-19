@@ -37,8 +37,12 @@ Usage::
 ######################
 from __future__ import absolute_import
 from functools import partial
+import sys
+### This is still here in case something else is using it via an import.
+### This should be removed.
 from sys import exit
 
+import logging
 import os.path
 import __main__
 
@@ -110,11 +114,7 @@ class Application(object):
         ### and parse them
         self.args = self.parser.parse_args()
 
-        ### get a logger - is there a way to to have logger be relative to the
-        ### invocation of the log call?
-        self.logger = logger or krux.logging.get_logger(
-            name, level=self.args.log_level
-        )
+        self._init_logging(logger)
 
         ### get a stats object - any arguments are handled via the CLI
         ### pass '--stats' to enable stats using defaults (see krux.cli)
@@ -139,35 +139,46 @@ class Application(object):
         if lockfile:
             self.acquire_lock(lockfile)
 
+    def _init_logging(self, logger):
+        self.logger = logger or krux.logging.get_logger(
+            self.name,
+            level=self.args.log_level
+        )
+        if self.args.log_file is not None:
+            handler = logging.handlers.WatchedFileHandler(self.args.log_file)
+            formatter = logging.Formatter(krux.logging.FORMAT)
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+
     def acquire_lock(self, lockfile=True):
         ### Did you just tell us to use a lock, or did you give us a location?
-        _lockfile = lockfile == True \
-            and os.path.join( DEFAULT_LOCK_DIR, self.name ) \
-            or lockfile
+        _lockfile = (os.path.join(DEFAULT_LOCK_DIR, self.name)
+                     if lockfile is True
+                     else lockfile)
 
         ### this will throw an execption if anything goes wrong
         try:
             self.lockfile = FileLock(_lockfile)
             self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
-            self.logger.debug("Acquired lock: %s" % self.lockfile.path)
+            self.logger.debug("Acquired lock: %s", self.lockfile.path)
         except LockError as err:
-            self.logger.warning("Lockfile error occurred: %s" % err)
+            self.logger.warning("Lockfile error occurred: %s", err)
             self.stats.incr("errors.lockfile_lock")
             raise
         except:
             self.logger.warning(
-                "Unhandled exception while acquiring lockfile at %s" % _lockfile
+                "Unhandled exception while acquiring lockfile at %s", _lockfile
             )
             self.stats.incr("errors.lockfile_unhandled")
             raise
 
         def ___release_lockfile(self):
-            self.logger.debug("Releasing lock: %s" % self.lockfile.path)
+            self.logger.debug("Releasing lock: %s", self.lockfile.path)
 
             try:
                 self.lockfile.release()
             except UnlockError as err:
-                self.logger.warning("Lockfile error occurred unlocking: %s" % err)
+                self.logger.warning("Lockfile error occurred unlocking: %s", err)
                 self.stats.incr("errors.lockfile_unlock")
                 raise
 
@@ -198,13 +209,12 @@ class Application(object):
 
         for hook in self._exit_hooks:
             try:
-                self.logger.debug("Running exit hook %s" % hook)
+                self.logger.debug("Running exit hook %s", hook)
                 hook()
             except Exception:
                 self.logger.exception(
                     'krux.cli.Application.exit: Exception raised by exit hook.'
                 )
-
 
     def exit(self, code=0):
         """
@@ -214,9 +224,9 @@ class Application(object):
         caught and logged.
         """
 
-        self.logger.debug('Explicitly exiting application with code %d' % code)
+        self.logger.debug('Explicitly exiting application with code %d', code)
         self._run_exit_hooks()
-        exit(code)
+        sys.exit(code)
 
     def raise_critical_error(self, err):
         """
@@ -273,6 +283,12 @@ def add_logging_args(parser):
         default=DEFAULT_LOG_LEVEL,
         choices=LEVELS.keys(),
         help='Verbosity of logging. (default: %(default)s)'
+    )
+    group.add_argument(
+        '--log-file',
+        default=None,
+        help='Full-qualified path to the log file '
+        '(default: %(default)s).'
     )
 
     return parser
@@ -334,6 +350,7 @@ def get_parser(description="Krux CLI", logging=True, stats=True, **kwargs):
 
     return parser
 
+
 def get_script_name():
     # get the name of the script, without an extension
     name = os.path.splitext(os.path.basename(__main__.__file__))[0]
@@ -341,6 +358,3 @@ def get_script_name():
     name = name.replace('_', '-')
 
     return name
-
-
-
