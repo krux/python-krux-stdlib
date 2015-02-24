@@ -38,9 +38,6 @@ Usage::
 from __future__ import absolute_import
 from functools import partial
 import sys
-### This is still here in case something else is using it via an import.
-### This should be removed.
-from sys import exit
 
 import logging
 import os.path
@@ -50,7 +47,7 @@ import __main__
 # Third Party Libraries #
 #########################
 from argparse import ArgumentParser
-from lockfile import FileLock, LockError, UnlockError
+from lockfile import LockFile, LockError, UnlockError
 
 ######################
 # Internal Libraries #
@@ -77,12 +74,14 @@ import krux.logging
 class ApplicationError(StandardError):
     pass
 
+
 class CriticalApplicationError(StandardError):
     """
     This error is only raised if the application is expected to exit.
     It should never be caught.
     """
     pass
+
 
 class Application(object):
     """
@@ -158,7 +157,7 @@ class Application(object):
 
         ### this will throw an execption if anything goes wrong
         try:
-            self.lockfile = FileLock(_lockfile)
+            self.lockfile = LockFile(_lockfile)
             self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
             self.logger.debug("Acquired lock: %s", self.lockfile.path)
         except LockError as err:
