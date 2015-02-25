@@ -36,6 +36,7 @@ Usage::
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+from contextlib import contextmanager
 from functools import partial
 import sys
 
@@ -133,10 +134,12 @@ class Application(object):
 
         ### Do you want an exclusive lock for this application?
         ### This can be done later as well, with an explicit path
-        self.lockfile = False
+        self.lockfile = None
+
+        self._exiting = False
 
         if lockfile:
-            self.acquire_lock(lockfile)
+            self.acquire_lockfile(lockfile)
 
     def _init_logging(self, logger):
         self.logger = logger or krux.logging.get_logger(
@@ -149,7 +152,11 @@ class Application(object):
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
 
-    def acquire_lock(self, lockfile=True):
+    def acquire_lockfile(self, lockfile=True):
+        if self.lockfile is not None:
+            raise ApplicationError('acquire_lock has been called when the lock has already '
+                                   'been acquired')
+
         ### Did you just tell us to use a lock, or did you give us a location?
         _lockfile = (os.path.join(DEFAULT_LOCK_DIR, self.name)
                      if lockfile is True
@@ -171,18 +178,27 @@ class Application(object):
             self.stats.incr("errors.lockfile_unhandled")
             raise
 
-        def ___release_lockfile(self):
-            self.logger.debug("Releasing lock: %s", self.lockfile.path)
-
-            try:
-                self.lockfile.release()
-            except UnlockError as err:
-                self.logger.warning("Lockfile error occurred unlocking: %s", err)
-                self.stats.incr("errors.lockfile_unlock")
-                raise
-
         ### release the hook when we're done
-        self.add_exit_hook( ___release_lockfile, self )
+        self.add_exit_hook(self.release_lockfile)
+
+    def acquire_lock(self, *args, **kwargs):
+        self.logger.warning('acquire_lock has been deprecated, call acquire_lockfile instead')
+        self.acquire_lockfile(*args, **kwargs)
+
+    def release_lockfile(self):
+        if self.lockfile is None:
+            self.logger.warning('There is no lockfile to release')
+            return
+
+        self.logger.debug("Releasing lock: %s", self.lockfile.path)
+
+        try:
+            self.lockfile.release()
+            self.lockfile = None
+        except UnlockError as err:
+            self.logger.warning("Lockfile error occurred unlocking: %s", err)
+            self.stats.incr("errors.lockfile_unlock")
+            raise
 
     def add_cli_arguments(self, parser):
         """
@@ -222,9 +238,15 @@ class Application(object):
         Calls all of the defined exit hooks before exiting. Exceptions are
         caught and logged.
         """
-
+        if self._exiting:
+            ### exit() has already been called, don't try to exit again.
+            ### This may happen if the calling script uses the context() method
+            ### and then calls exit() explicitly. This is a valid use case if the
+            ### Application wants to exit with a non-zero exit code.
+            return
         self.logger.debug('Explicitly exiting application with code %d', code)
         self._run_exit_hooks()
+        self._exiting = True
         sys.exit(code)
 
     def raise_critical_error(self, err):
@@ -232,10 +254,38 @@ class Application(object):
         This logs the error, releases any lock files and throws an exception.
         The expectation is that the application exits after this.
         """
-
+        self.logger.warning('raise_critical_error is deprecated, please switch to the context() '
+                            'method for more reliable cleanup')
         self.logger.critical(err)
         self._run_exit_hooks()
         raise CriticalApplicationError(err)
+
+    @contextmanager
+    def context(self):
+        """
+        Returns a context manager that you can use with the 'with' keyword.
+        Using this context manager means that you do not need to explicitly
+        call exit (if exiting with the default exit code of 0) and do no need
+        to use raise_critical_error when raising exceptions as this context
+        manager ensures that the exit hooks are always called (and hence the
+        lockfile is always released).
+
+        Ex:
+        app = Application()
+        with app.context():
+            app.logger.info('Hello World')
+            ...
+        """
+        try:
+            yield
+        except:
+            ### always run exit hooks, even on exceptions
+            self._run_exit_hooks()
+            raise
+            ### XXX: we may want to change this to log the exception and automatically
+            ### exit with a non-zero exit code
+        ### if the block finishes normally, call exit
+        self.exit()
 
 
 ##########################

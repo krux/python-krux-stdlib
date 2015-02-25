@@ -12,14 +12,18 @@ from __future__ import absolute_import
 from unittest import TestCase
 
 from logging import Logger
-from time    import time
+import multiprocessing
+import os
+import os.path
+import time
 
 #########################
 # Third Party Libraries #
 #########################
 from argparse   import ArgumentParser, Namespace
+from lockfile   import LockError
 from mock       import MagicMock, patch
-from nose.tools import assert_equal, assert_true
+from nose.tools import assert_equal, assert_true, assert_false, raises
 
 ######################
 # Internal Libraries #
@@ -195,27 +199,57 @@ def test_application():
 
 
 def test_application_locks():
+    """
+    krux.cli.Application creates a lockfile which is reentrant
+    """
     ### just to make sure stale runs don't interfere
-    name = __name__ + str(time())
+    name = __name__ + str(time.time())
 
     ### Now with lockfile
     with patch('sys.argv', [__name__]):
-        app = cli.Application(name = name, lockfile = True)
+        with patch('sys.exit'):
+            app = cli.Application(name = name, lockfile = True)
 
-        assert_true(app)
-        assert_true(app.lockfile)
+            assert_true(app)
+            assert_true(app.lockfile)
 
-        ### This will use the same lockfile, as it's based on pid.
-        ### so this should work
-        app = cli.Application(name = name, lockfile = True)
-        assert_true(app)
-        assert_true(app.lockfile)
+            ### This will use the same lockfile, as it's based on pid.
+            ### so this should work
+            app = cli.Application(name = name, lockfile = True)
+            with app.context():
+                assert_true(app)
+                assert_true(app.lockfile)
+                lock_file = app.lockfile.lock_file
+                ### make sure the lock file exists
+                assert_true(os.path.exists(lock_file))
+            ### make sure the lock file has been removed
+            assert_false(os.path.exists(lock_file))
 
-        ### needed to clean up lock file, or /tmp will get littered.
-        app._run_exit_hooks()
 
-        ### XXX ideally we'd have a failure test in here as well, but
-        ### because of the way it's implemented LockFile won't fail if the
-        ### same pid tries to get the same lock twice:
-        ### http://pydoc.net/Python/lockfile/0.9.1/lockfile.linklockfile/
-        ### suggestions welcome!
+def locker(name, event):
+    app = cli.Application(name=name, lockfile=True)
+    with app.context():
+        event.set()
+        while True:
+            time.sleep(1)
+
+
+@raises(LockError)
+def test_application_lock_fail():
+    """
+    krux.cli.Application fails when it can't get a lock on the lockfile
+    """
+    event = multiprocessing.Event()
+    name = __name__ + str(time.time())
+    proc = multiprocessing.Process(name=name + ' locker', target=locker, args=(name, event))
+    proc.start()
+    ### make sure the locker has initialized and locked its lockfile
+    event.wait()
+    with patch('sys.exit'):
+        try:
+            app = cli.Application(name=name, lockfile=True)
+        finally:
+            proc.terminate()
+        ### we should never get here but just in case...
+        app.exit()
+        assert_true(False)
