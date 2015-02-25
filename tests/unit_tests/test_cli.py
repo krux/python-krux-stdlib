@@ -14,9 +14,6 @@ from unittest import TestCase
 from logging import Logger
 from time    import time
 
-import os
-import sys
-
 #########################
 # Third Party Libraries #
 #########################
@@ -28,7 +25,6 @@ from nose.tools import assert_equal, assert_true
 # Internal Libraries #
 ######################
 from krux.stats     import DummyStatsClient
-from krux.constants import DEFAULT_LOCK_DIR
 
 import krux.cli as cli
 
@@ -76,6 +72,7 @@ def test_get_parser():
     parser = cli.get_parser()
     assert_true(parser)
 
+
 def test_get_script_name():
     """
     Test getting script name from the invoking script
@@ -85,6 +82,7 @@ def test_get_script_name():
     ### these tests are invoked as 'nosetests --options...', so
     ### that's the name of the 'script'
     assert_equal(name, 'nosetests')
+
 
 class TestApplication(TestCase):
     def setUp(self):
@@ -177,6 +175,7 @@ class TestApplication(TestCase):
 
         assert_true(mock_logger.exception.called)
 
+
 ###
 ### Test krux.cli.Application
 ###
@@ -193,6 +192,7 @@ def test_application():
     assert_true(app.parser)
     assert_true(app.stats)
     assert_true(app.logger)
+
 
 def test_application_locks():
     ### just to make sure stale runs don't interfere
