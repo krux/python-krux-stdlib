@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013, 2014 Krux Digital, Inc.
+# © 2013, 2014, 2015 Krux Digital, Inc.
 #
 from setuptools import setup, find_packages
 
 
 # We use the version to construct the DOWNLOAD_URL.
-VERSION = '0.8.14'
+VERSION = '0.9.0'
 
 # URL to the repository on Github.
 REPO_URL = 'https://github.com/krux/python-krux-stdlib'
