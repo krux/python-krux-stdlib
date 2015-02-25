@@ -17,7 +17,7 @@ import unittest as unit
 #########################
 # Third Party Libraries #
 #########################
-from mock               import MagicMock, PropertyMock, patch
+from mock               import MagicMock, patch
 from nose.tools         import assert_equal, raises
 from tornado.httpserver import HTTPRequest
 from tornado.web        import HTTPError
@@ -176,7 +176,6 @@ class TestRequestHandler(BaseCase):
         expected_delta = delta * 1000
 
         mock_get_key      = MagicMock(return_value = key)
-        mock_get_status   = MagicMock(return_value = status)
         mock_incr         = MagicMock()
         mock_timer        = MagicMock()
         mock_stats        = MagicMock()
@@ -191,10 +190,10 @@ class TestRequestHandler(BaseCase):
         handler.start_time    = end_time - delta
 
         with patch(
-                'krux.tornado.handlers.time.time',
-                autospec     = True,
-                return_value = end_time
-        ) as mock_time:
+            'krux.tornado.handlers.time.time',
+            autospec     = True,
+            return_value = end_time
+        ):
             handler.send_stats()
 
         mock_get_key.assert_called_once_with()
