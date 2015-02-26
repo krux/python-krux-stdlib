@@ -45,7 +45,6 @@ def test_setup(mock_parser):
     assert_true(app)
 
 
-
 class TestApplication(TestCase):
     """
     Tests for krux.tornado.application.Application.
@@ -103,6 +102,7 @@ class TestApplication(TestCase):
         Application handlers defined on the class are used
         """
         handler_spec = (r'/handler$', ErrorHandler)
+
         class FakeApplication(Application):
             # Handlers defined as a class attribute
             app_handlers = [handler_spec]
@@ -122,6 +122,7 @@ class TestApplication(TestCase):
         Application handlers defined on the instance are used
         """
         handler_spec = (r'/handler$', ErrorHandler)
+
         class FakeApplication(Application):
             def __init__(self, *args, **kwargs):
                 # Handlers defined as an instance attribute
@@ -157,7 +158,7 @@ class TestApplication(TestCase):
         assert_equal(app.version, version.strip())
 
         # Change the value stored in our mock version file
-        mock_handle.readline.return_value = version
+        mock_handle.readline.return_value = version2
 
         with patch('%s.os.path.exists' % module, return_value = True):
             with patch('%s.open' % module, mocked_open, create = True):
@@ -177,6 +178,7 @@ class TestApplication(TestCase):
         mock_repo.return_value.commit.return_value = commit
 
         results = [False, True]
+
         def exists_results(*args):
             return results.pop(0)
 
@@ -186,7 +188,6 @@ class TestApplication(TestCase):
 
         assert_equal(app.version, commit)
 
-
     @patch('krux.tornado.application.git.Repo', autospec = True)
     def test_get_version_no_version(self, mock_repo):
         """
@@ -195,6 +196,7 @@ class TestApplication(TestCase):
         module = 'krux.tornado.application'
 
         results = [False, False]
+
         def exists_results(*args):
             return results.pop(0)
 

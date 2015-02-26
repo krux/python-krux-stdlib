@@ -12,7 +12,6 @@ from __future__ import absolute_import
 from unittest import TestCase
 
 import re
-import sys
 
 #########################
 # Third Party Libraries #
@@ -60,7 +59,6 @@ class TestApplication(TestCase):
         assert_true(cmd.ok)
         assert_equal(cmd.returncode, 0)
 
-
     def test_cmd_false(self):
         """ Test return code from failing command """
         cmd = self.io.run_cmd( command = 'false' )
@@ -71,7 +69,7 @@ class TestApplication(TestCase):
     @raises(krux.io.RunCmdError)
     def test_cmd_exception(self):
         """ Test we can raise exceptions """
-        cmd = self.io.run_cmd( command = 'false', raise_exception = True )
+        self.io.run_cmd( command = 'false', raise_exception = True )
 
     def test_cmd_stdout(self):
         """ Make sure we can capture stdout """
@@ -105,6 +103,3 @@ class TestApplication(TestCase):
         ### but these are all not set
         assert_false(len(cmd.stdout))
         assert_false(len(cmd.stderr))
-
-
-
