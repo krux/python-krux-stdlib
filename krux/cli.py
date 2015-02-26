@@ -385,6 +385,8 @@ def add_lockfile_args(parser):
         help    = 'Dir where lock files are stored (default: %(default)s)'
     )
 
+    return parser
+
 
 def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, **kwargs):
     """
