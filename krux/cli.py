@@ -158,7 +158,7 @@ class Application(object):
                                    'been acquired')
 
         ### Did you just tell us to use a lock, or did you give us a location?
-        _lockfile = (os.path.join(DEFAULT_LOCK_DIR, self.name)
+        _lockfile = (os.path.join(self.args.lock_dir, self.name)
                      if lockfile is True
                      else lockfile)
 
@@ -376,7 +376,17 @@ def add_stats_args(parser):
     return parser
 
 
-def get_parser(description="Krux CLI", logging=True, stats=True, **kwargs):
+def add_lockfile_args(parser):
+    group = get_group(parser, 'lockfile')
+
+    group.add_argument(
+        '--lock-dir',
+        default = DEFAULT_LOCK_DIR,
+        help    = 'Dir where lock files are stored (default: %(default)s)'
+    )
+
+
+def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, **kwargs):
     """
     Run setup and return an argument parser for Krux applications
 
@@ -396,6 +406,9 @@ def get_parser(description="Krux CLI", logging=True, stats=True, **kwargs):
     ### standard stats arguments
     if stats:
         parser = add_stats_args(parser)
+
+    if lockfile:
+        parser = add_lockfile_args(parser)
 
     return parser
 
