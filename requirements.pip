@@ -20,7 +20,6 @@ statsd==2.0.3
 argparse==1.2.1
 GitPython==0.3.2.RC1
 simplejson==3.3.0
-tornado==3.0.1
 # for lockfiles in cli
 lockfile==0.9.1
 
@@ -28,10 +27,3 @@ lockfile==0.9.1
 coverage==3.6
 mock==1.0.1
 nose==1.2.1
-
-## The following requirements were added by pip --freeze:
-async==0.6.1
-fudge==1.0.3
-gitdb==0.5.4
-smmap==0.8.2
-wsgiref==0.1.2
