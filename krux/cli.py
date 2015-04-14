@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013-2014 Krux Digital, Inc.
+# © 2013-2015 Krux Digital, Inc.
 #
 """
 This module provides tools for handling command-line arguments for a Krux
@@ -53,19 +53,20 @@ from lockfile import LockFile, LockError, UnlockError
 ######################
 # Internal Libraries #
 ######################
-from krux.logging import LEVELS
-from krux.constants import (
-    DEFAULT_LOG_LEVEL,
+from krux.logging import LEVELS, DEFAULT_LOG_LEVEL
+from krux.stats import (
     DEFAULT_STATSD_HOST,
     DEFAULT_STATSD_PORT,
     DEFAULT_STATSD_ENV,
-    DEFAULT_LOCK_DIR,
-    DEFAULT_LOCK_TIMEOUT,
 )
 
 import krux.io
 import krux.stats
 import krux.logging
+
+
+DEFAULT_LOCK_DIR = '/tmp'
+DEFAULT_LOCK_TIMEOUT = 2        # seconds
 
 
 ######################
