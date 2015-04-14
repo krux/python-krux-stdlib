@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013 Krux Digital, Inc.
+# © 2013-2015 Krux Digital, Inc.
 #
 """
 Instrument code for profiling and operational metrics.
@@ -18,14 +18,10 @@ from contextlib import contextmanager
 import statsd       # for the dummy client to wrap the callables
 import kruxstatsd   # the default handler
 
-######################
-# Internal Libraries #
-######################
-from krux.constants import (
-    DEFAULT_STATSD_HOST,
-    DEFAULT_STATSD_PORT,
-    DEFAULT_STATSD_ENV,
-)
+
+DEFAULT_STATSD_HOST = 'localhost'
+DEFAULT_STATSD_PORT = 8125
+DEFAULT_STATSD_ENV = 'dev'
 
 
 def get_stats(
@@ -47,13 +43,13 @@ def get_stats(
     custom Stats class.
 
     :keyword env: The Statsd environment to report the stat in. Defaults to
-    :py:data:`krux.constants.DEFAULT_STATSD_ENV`
+    :py:data:`krux.stats.DEFAULT_STATSD_ENV`
 
     :keyword host: The Statsd host to connect to. Defaults to
-    :py:data:`krux.constants.DEFAULT_STATSD_HOST`
+    :py:data:`krux.stats.DEFAULT_STATSD_HOST`
 
     :keyword env: The Statsd port to connect to. Defaults to
-    :py:data:`krux.constants.DEFAULT_STATSD_PORT`
+    :py:data:`krux.stats.DEFAULT_STATSD_PORT`
     """
 
     stats = {

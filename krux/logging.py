@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013 Krux Digital, Inc.
+# © 2013-2015 Krux Digital, Inc.
 #
 """
 This module provides support for configuring the python logging module for
@@ -19,7 +19,7 @@ Usage::
             logger = get_logger(__name__, level='info')
 
 The default log level for Krux applications in production is
-:py:data:`krux.constants.DEFAULT_LOG_LEVEL`.
+:py:data:`krux.logging.DEFAULT_LOG_LEVEL`.
 
 It is very important to use the correct log level for all your log
 messages. Too much logging can have a significant impact on application
@@ -91,6 +91,8 @@ import logging
 #############
 # Constants #
 #############
+DEFAULT_LOG_LEVEL = 'warning'
+
 #: Map human-friendly log level strings to the constants in the
 #: :py:mod:`python:logging` module.
 LEVELS = dict((name, getattr(logging, name.upper()))
