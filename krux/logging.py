@@ -2,6 +2,7 @@
 #
 # © 2013-2015 Krux Digital, Inc.
 #
+
 """
 This module provides support for configuring the python logging module for
 a Krux application.
@@ -81,16 +82,14 @@ problems. Here is a guide to what each log level means at Krux:
     stop accepting traffic. These messages should be extremely rare in any
     application.
 """
-######################
-# Standard Libraries #
-######################
-from __future__ import absolute_import
 
+#
+# Standard Libraries
+#
+from __future__ import absolute_import
 import logging
 
-#############
-# Constants #
-#############
+
 DEFAULT_LOG_LEVEL = 'warning'
 
 #: Map human-friendly log level strings to the constants in the
@@ -104,14 +103,11 @@ LEVELS = dict((name, getattr(logging, name.upper()))
 FORMAT = '%(asctime)s: %(name)s/%(levelname)-9s: %(message)s'
 
 
-#############
-# Functions #
-#############
 def setup(level='warning'):
     """
     Configure the root logger for a Krux application.
 
-    :keyword string level: log level, one of :py:data:`krux.logging.LEVELS`
+    LEVEL is the log level, one of LEVELS
     """
     assert level in LEVELS.keys(), 'Invalid log level %s' % level
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
@@ -119,12 +115,12 @@ def setup(level='warning'):
 
 def get_logger(name, **kwargs):
     """
-    Run setup and return the root logger for a Krux application.
+    Run setup and return the logger for a Krux application.
 
-    :argument name: the logging namespace to use, should usually be __name__
+    NAME is the logging namespace to use, should usually be __name__
 
-    All other keywords are passed verbatim to :py:func:`setup`
+    All other keywords are passed verbatim to the setup() function.x
     """
-
     setup(**kwargs)
+
     return logging.getLogger(name)
