@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-# © 2014 Krux Digital, Inc.
+# © 2014, 2015 Krux Digital, Inc.
 #
+
 """
 Classes & Functions for email.
 """
-######################
-# Standard Libraries #
-######################
+
+#
+# Standard Libraries
+#
 from __future__ import absolute_import
 from email.mime.text import MIMEText
 from email.header import Header
@@ -28,14 +30,14 @@ from smtplib import (
     SMTPAuthenticationError,
 )
 
-#####################
-# General Libraries #
-#####################
+#
+# General Libraries
+#
 import pystache
 
-####################
-# Internal Imports #
-####################
+#
+# Internal Imports
+#
 
 
 CHARSET = 'utf-8'
@@ -113,13 +115,13 @@ def sendmail(
     email that was sent.
     """
     if isinstance(recipients, basestring):
-        recipients = [ recipients ]
+        recipients = [recipients]
 
     if bcc is None:
         bcc = []
 
     if isinstance(bcc, basestring):
-        bcc = [ bcc ]
+        bcc = [bcc]
 
     if headers is None:
         headers = {}

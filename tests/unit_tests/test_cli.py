@@ -2,12 +2,14 @@
 #
 # © 2013, 2014 Krux Digital, Inc.
 #
+
 """
 Unit tests for the krux.cli module.
 """
-######################
-# Standard Libraries #
-######################
+
+#
+# Standard Libraries
+#
 from __future__ import absolute_import
 from unittest import TestCase
 
@@ -17,18 +19,18 @@ import os
 import os.path
 import time
 
-#########################
-# Third Party Libraries #
-#########################
-from argparse   import ArgumentParser, Namespace
-from lockfile   import LockError
-from mock       import MagicMock, patch
-from nose.tools import assert_equal, assert_true, assert_false, raises
+#
+# Third Party Libraries
+#
+from argparse import ArgumentParser, Namespace
+from lockfile import LockError
+from mock import MagicMock, patch
+from nose.tools import *
 
-######################
-# Internal Libraries #
-######################
-from krux.stats     import DummyStatsClient
+#
+# Internal Libraries
+#
+from krux.stats import DummyStatsClient
 
 import krux.cli as cli
 
@@ -37,10 +39,10 @@ def test_get_new_group():
     """
     Getting an argument group that doesn't exist.
     """
-    name                           = 'new_group'
-    mock_parser                    = MagicMock(spec=ArgumentParser)
-    mock_parser._action_groups     = []
-    mock_parser.add_argument_group = MagicMock(return_value = name)
+    name = 'new_group'
+    mock_parser = MagicMock(spec=ArgumentParser)
+    mock_parser._action_groups = []
+    mock_parser.add_argument_group = MagicMock(return_value=name)
 
     group = cli.get_group(mock_parser, name)
 
@@ -52,10 +54,10 @@ def test_get_existing_group():
     """
     Getting an argument group that already exists.
     """
-    name                       = 'existing'
-    mock_group                 = MagicMock()
-    mock_group.title           = name
-    mock_parser                = MagicMock(spec=ArgumentParser)
+    name = 'existing'
+    mock_group = MagicMock()
+    mock_group.title = name
+    mock_parser = MagicMock(spec=ArgumentParser)
     mock_parser._action_groups = [mock_group]
 
     group = cli.get_group(mock_parser, name)
@@ -64,11 +66,11 @@ def test_get_existing_group():
     assert_equal(group, mock_group)
 
 
-### XXX autospecing ArgumentParser does not autospec the private method
-### we are (ab)using in krux.cli. So for now, just do the simplest test
-### possible
+# XXX autospecing ArgumentParser does not autospec the private method
+# we are (ab)using in krux.cli. So for now, just do the simplest test
+# possible
 
-#@patch('krux.cli.ArgumentParser', autospec=True)
+# @patch('krux.cli.ArgumentParser', autospec=True)
 def test_get_parser():
     """
     Test getting a parser from krux.cli
@@ -83,8 +85,8 @@ def test_get_script_name():
     """
     name = cli.get_script_name()
 
-    ### these tests are invoked as 'nosetests --options...', so
-    ### that's the name of the 'script'
+    # these tests are invoked as 'nosetests --options...', so
+    # that's the name of the 'script'
     assert_equal(name, 'nosetests')
 
 
@@ -101,7 +103,7 @@ class TestApplication(TestCase):
         # Mock the command-line parser so it doesn't attempt to parse the
         # command line of our test runner.
         self.parser_patch = patch(
-            'krux.cli.get_parser', spec = ArgumentParser
+            'krux.cli.get_parser', spec=ArgumentParser
         )
         self.mock_parser = self.parser_patch.start()
 
@@ -180,18 +182,18 @@ class TestApplication(TestCase):
         assert_true(mock_logger.exception.called)
 
 
-###
-### Test krux.cli.Application
-###
+#
+# Test krux.cli.Application
+#
 
 def test_application():
     """
     Test getting an Application from krux.cli
     """
 
-    ### Vanilla app
+    # Vanilla app
     with patch('sys.argv', [__name__]):
-        app = cli.Application(name = __name__)
+        app = cli.Application(name=__name__)
     assert_true(app)
     assert_true(app.parser)
     assert_true(app.stats)
@@ -202,27 +204,27 @@ def test_application_locks():
     """
     krux.cli.Application creates a lockfile which is reentrant
     """
-    ### just to make sure stale runs don't interfere
+    # just to make sure stale runs don't interfere
     name = __name__ + str(time.time())
 
-    ### Now with lockfile
+    # Now with lockfile
     with patch('sys.argv', [__name__]):
         with patch('sys.exit'):
-            app = cli.Application(name = name, lockfile = True)
+            app = cli.Application(name=name, lockfile=True)
 
             assert_true(app)
             assert_true(app.lockfile)
 
-            ### This will use the same lockfile, as it's based on pid.
-            ### so this should work
-            app = cli.Application(name = name, lockfile = True)
+            # This will use the same lockfile, as it's based on pid.
+            # so this should work
+            app = cli.Application(name=name, lockfile=True)
             with app.context():
                 assert_true(app)
                 assert_true(app.lockfile)
                 lock_file = app.lockfile.lock_file
-                ### make sure the lock file exists
+                # make sure the lock file exists
                 assert_true(os.path.exists(lock_file))
-            ### make sure the lock file has been removed
+            # make sure the lock file has been removed
             assert_false(os.path.exists(lock_file))
 
 
@@ -241,15 +243,17 @@ def test_application_lock_fail():
     """
     event = multiprocessing.Event()
     name = __name__ + str(time.time())
-    proc = multiprocessing.Process(name=name + ' locker', target=locker, args=(name, event))
+    proc = multiprocessing.Process(name=name + ' locker',
+                                   target=locker,
+                                   args=(name, event))
     proc.start()
-    ### make sure the locker has initialized and locked its lockfile
+    # make sure the locker has initialized and locked its lockfile
     event.wait()
     with patch('sys.exit'):
         try:
             app = cli.Application(name=name, lockfile=True)
         finally:
             proc.terminate()
-        ### we should never get here but just in case...
+        # we should never get here but just in case...
         app.exit()
         assert_true(False)
