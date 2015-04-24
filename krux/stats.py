@@ -23,7 +23,8 @@ import statsd
 
 ENV_VARS = ('KRUX_STATS_ENVIRONMENT',
             'STATS_ENVIRONMENT',
-            'STATSD_ENVIRONMENT')
+            'STATSD_ENVIRONMENT',
+            'KRUX_ENVIRONMENT')
 DEFAULT_STATS_ENVIRONMENT = 'dev'
 
 
