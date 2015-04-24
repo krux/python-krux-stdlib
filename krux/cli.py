@@ -29,9 +29,8 @@ Usage::
             parser = get_parser(description='My Krux CLI App')
 
             # OO
-            app     = Application(name='My Krux CLI App')
+            app = Application(name='My Krux CLI App')
             parser  = app.parser
-
 """
 
 #
