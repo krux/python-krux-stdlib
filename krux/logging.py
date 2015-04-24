@@ -103,7 +103,7 @@ LEVELS = dict((name, getattr(logging, name.upper()))
 FORMAT = '%(asctime)s: %(name)s/%(levelname)-9s: %(message)s'
 
 
-def setup(level='warning'):
+def setup(level=DEFAULT_LOG_LEVEL):
     """
     Configure the root logger for a Krux application.
 
