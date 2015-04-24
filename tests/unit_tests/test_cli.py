@@ -27,11 +27,11 @@ from lockfile import LockError
 from mock import MagicMock, patch
 from nose.tools import *
 
+import statsd
+
 #
 # Internal Libraries
 #
-from krux.stats import DummyStatsClient
-
 import krux.cli as cli
 
 
@@ -125,7 +125,7 @@ class TestApplication(TestCase):
         assert_equal(self.app.name, self.__class__.__name__)
         assert_true(isinstance(self.app.args, Namespace))
         assert_true(isinstance(self.app.logger, Logger))
-        assert_true(isinstance(self.app.stats, DummyStatsClient))
+        assert_true(isinstance(self.app.stats, statsd.StatsClient))
         assert_equal(self.app._exit_hooks, [])
 
     @patch('krux.cli.partial')

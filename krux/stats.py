@@ -2,97 +2,72 @@
 #
 # © 2013-2015 Krux Digital, Inc.
 #
+
 """
 Instrument code for profiling and operational metrics.
 """
 
-######################
-# Standard Libraries #
-######################
+#
+# Standard Libraries
+#
 from __future__ import absolute_import
-from contextlib import contextmanager
 
-#########################
-# Third Party Libraries #
-#########################
-import statsd       # for the dummy client to wrap the callables
-import kruxstatsd   # the default handler
+import os
+import socket
 
-
-DEFAULT_STATSD_HOST = 'localhost'
-DEFAULT_STATSD_PORT = 8125
-DEFAULT_STATSD_ENV = 'dev'
+#
+# Third Party Libraries
+#
+import statsd
 
 
-def get_stats(
-    prefix,
-    client=True,
-    env=DEFAULT_STATSD_ENV,
-    host=DEFAULT_STATSD_HOST,
-    port=DEFAULT_STATSD_PORT
-):
+ENV_VARS = ('KRUX_STATS_ENVIRONMENT',
+            'STATS_ENVIRONMENT',
+            'STATSD_ENVIRONMENT',
+            'KRUX_ENVIRONMENT')
+DEFAULT_STATS_ENVIRONMENT = 'dev'
+
+
+def get_stats(prefix):
     """
-    Pick the stats implementation the caller wants.
+    Return a correctly-configured StatsClient object using the standard
+    Krux prefix prepended to the given PREFIX.
 
-    :argument prefix: The string prepended to all stats sent to Statsd.
-
-    :keyword client: The StatsClient class to use. Defaults to 'True' which
-    signals the use of 'kruxstatsd.StatsClient'. 'False' or 'None' will
-    signal the use of :py:class:`stats.DummyStatsClient
-    <krux.stats.DummyStatsClient>`.  Any other value is interpreted as a
-    custom Stats class.
-
-    :keyword env: The Statsd environment to report the stat in. Defaults to
-    :py:data:`krux.stats.DEFAULT_STATSD_ENV`
-
-    :keyword host: The Statsd host to connect to. Defaults to
-    :py:data:`krux.stats.DEFAULT_STATSD_HOST`
-
-    :keyword env: The Statsd port to connect to. Defaults to
-    :py:data:`krux.stats.DEFAULT_STATSD_PORT`
+    The standard Krux prefix is $ENVIRONMENT.$HOSTNAME
     """
-
-    stats = {
-        # You want the default implementation
-        True:   kruxstatsd.StatsClient,
-        # You don't want stats, use dummy class
-        False:  DummyStatsClient,
-        None:   DummyStatsClient,
-        # Default: you have an object that
-        # implements the StatsClient interface
-    }.get(client, lambda **kw: client)(
-        prefix=prefix,
-        env=env,
-        host=host,
-        port=port
-    )
-
-    # You passed something we can't deal with
-    assert hasattr(stats, 'incr') and hasattr(stats, 'timer'), \
-        "Unsupported value for 'client': %s" % client
-
-    return stats
+    prefix = '{0}.{1}'.format(get_standard_stats_prefix(), prefix)
+    return statsd.StatsClient(prefix=prefix)
 
 
-class DummyStatsClient(object):
-    """A dummy StatsClient compatible object that does nothing"""
+def get_standard_stats_prefix():
+    """
+    Return the krux standard stats prefix.
+    """
+    return '{0}.{1}'.format(get_stats_environment(), get_stats_hostname())
 
-    def __init__(self, **kwargs):
-        # So we have the object ready for wrapping
-        self._client = statsd.StatsClient()
 
-    def __getattr__(self, attr):
-        """Proxies calls to ``statsd.StatsClient`` methods. Silently pass'es.
-        """
-        attr = getattr(self._client, attr)
+def get_stats_environment():
+    """
+    Return the correct stats environment based on environment variables.
 
-        if callable(attr):
-            # We define @contextmanager, because some functions can be used in
-            # a 'with' statement - specifically 'timer'.
-            # see http://docs.python.org/2/library/contextlib.html for details.
-            # 'yield' makes sure the decorated function is called
-            @contextmanager
-            def wrapper(*args, **kwargs):
-                yield
-            return wrapper
-        return attr
+    This function checks, in order, the environment variables
+    KRUX_STATS_ENVIRONMENT, STATS_ENVIRONMENT, and STATSD_ENVIRONMENT,
+    returning the first one that is defined.
+
+    If none of these environment variables is defined, the function returns
+    DEFAULT_STATS_ENVIRONMENT.
+    """
+    for env_key in ENV_VARS:
+        env = os.getenv(env_key, None)
+        if env is not None:
+            return env
+
+    return DEFAULT_STATS_ENVIRONMENT
+
+
+def get_stats_hostname():
+    """
+    Return the hostname of the current host for use as part of the standard
+    Krux stats prefix.
+    """
+    return socket.gethostname().split('.')[0]
