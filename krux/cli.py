@@ -2,6 +2,7 @@
 #
 # © 2013-2015 Krux Digital, Inc.
 #
+
 """
 This module provides tools for handling command-line arguments for a Krux
 application.
@@ -24,17 +25,18 @@ Usage::
 
         if __name__ == '__main__':
 
-            ### functional
+            # functional
             parser = get_parser(description = 'My Krux CLI App')
 
-            ### OO
+            # OO
             app     = Application(name = 'My Krux CLI App')
             parser  = app.parser
 
 """
-######################
-# Standard Libraries #
-######################
+
+#
+# Standard Libraries
+#
 from __future__ import absolute_import
 from contextlib import contextmanager
 from functools import partial
@@ -44,21 +46,16 @@ import logging
 import os.path
 import __main__
 
-#########################
-# Third Party Libraries #
-#########################
+#
+# Third Party Libraries
+#
 from argparse import ArgumentParser
 from lockfile import LockFile, LockError, UnlockError
 
-######################
-# Internal Libraries #
-######################
+#
+# Internal Libraries
+#
 from krux.logging import LEVELS, DEFAULT_LOG_LEVEL
-from krux.stats import (
-    DEFAULT_STATSD_HOST,
-    DEFAULT_STATSD_PORT,
-    DEFAULT_STATSD_ENV,
-)
 
 import krux.io
 import krux.stats
@@ -69,9 +66,9 @@ DEFAULT_LOCK_DIR = '/tmp'
 DEFAULT_LOCK_TIMEOUT = 2        # seconds
 
 
-######################
-### Object interface #
-######################
+#
+# Object interface
+#
 
 class ApplicationError(StandardError):
     pass
@@ -103,38 +100,31 @@ class Application(object):
         :py:func:`cli.get_parser <krux.cli.get_parser>`
         """
 
-        ### note our name
+        # note our name
         self.name = name
 
-        ### get a CLI parser
+        # get a CLI parser
         self.parser = parser or krux.cli.get_parser(description=name)
 
-        ### get more arguments, if needed
+        # get more arguments, if needed
         self.add_cli_arguments(self.parser)
 
-        ### and parse them
+        # and parse them
         self.args = self.parser.parse_args()
 
         self._init_logging(logger)
 
-        ### get a stats object - any arguments are handled via the CLI
-        ### pass '--stats' to enable stats using defaults (see krux.cli)
-        self.stats = krux.stats.get_stats(
-            client=getattr(self.args, 'stats', None),
-            prefix='cli.%s' % name,
-            env=getattr(self.args, 'stats_environment', None),
-            host=getattr(self.args, 'stats_host', None),
-            port=getattr(self.args, 'stats_port', None),
-        )
+        # get a stats object - configuration is taken from environment variables
+        self.stats = krux.stats.get_stats(prefix='cli.%s' % name)
 
-        ### Set up an krux.io object so we can run external commands
+        # Set up an krux.io object so we can run external commands
         self.io = krux.io.IO( logger = self.logger, stats = self.stats )
 
-        ### Exit hooks are run when the exit() method is called.
+        # Exit hooks are run when the exit() method is called.
         self._exit_hooks = []
 
-        ### Do you want an exclusive lock for this application?
-        ### This can be done later as well, with an explicit path
+        # Do you want an exclusive lock for this application?
+        # This can be done later as well, with an explicit path
         self.lockfile = None
 
         self._exiting = False
@@ -158,12 +148,12 @@ class Application(object):
             raise ApplicationError('acquire_lock has been called when the lock has already '
                                    'been acquired')
 
-        ### Did you just tell us to use a lock, or did you give us a location?
+        # Did you just tell us to use a lock, or did you give us a location?
         _lockfile = (os.path.join(self.args.lock_dir, self.name)
                      if lockfile is True
                      else lockfile)
 
-        ### this will throw an execption if anything goes wrong
+        # this will throw an execption if anything goes wrong
         try:
             self.lockfile = LockFile(_lockfile)
             self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
@@ -179,7 +169,7 @@ class Application(object):
             self.stats.incr("errors.lockfile_unhandled")
             raise
 
-        ### release the hook when we're done
+        # release the hook when we're done
         self.add_exit_hook(self.release_lockfile)
 
     def acquire_lock(self, *args, **kwargs):
@@ -240,10 +230,10 @@ class Application(object):
         caught and logged.
         """
         if self._exiting:
-            ### exit() has already been called, don't try to exit again.
-            ### This may happen if the calling script uses the context() method
-            ### and then calls exit() explicitly. This is a valid use case if the
-            ### Application wants to exit with a non-zero exit code.
+            # exit() has already been called, don't try to exit again.
+            # This may happen if the calling script uses the context() method
+            # and then calls exit() explicitly. This is a valid use case if the
+            # Application wants to exit with a non-zero exit code.
             return
         self.logger.debug('Explicitly exiting application with code %d', code)
         self._run_exit_hooks()
@@ -280,18 +270,18 @@ class Application(object):
         try:
             yield
         except:
-            ### always run exit hooks, even on exceptions
+            # always run exit hooks, even on exceptions
             self._run_exit_hooks()
             raise
-            ### XXX: we may want to change this to log the exception and automatically
-            ### exit with a non-zero exit code
-        ### if the block finishes normally, call exit
+            # XXX: we may want to change this to log the exception and automatically
+            # exit with a non-zero exit code
+        # if the block finishes normally, call exit
         self.exit()
 
 
-##########################
-### Functional interface #
-##########################
+#
+# Functional interface
+#
 def get_group(parser, group_name):
     """
     Return an argument group based on the group name.
@@ -344,39 +334,6 @@ def add_logging_args(parser):
     return parser
 
 
-def add_stats_args(parser):
-    """
-    Add stats-related command-line arguments to the given parser.
-
-    :argument parser: parser instance to which the arguments will be added
-    """
-    group = get_group(parser, 'stats')
-
-    group.add_argument(
-        '--stats',
-        default=False,
-        action='store_true',
-        help='Enable sending statistics to statsd. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-host',
-        default=DEFAULT_STATSD_HOST,
-        help='Statsd host to send statistics to. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-port',
-        default=DEFAULT_STATSD_PORT,
-        help='Statsd port to send statistics to. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-environment',
-        default=DEFAULT_STATSD_ENV,
-        help='Statsd environment. (default: %(default)s)'
-    )
-
-    return parser
-
-
 def add_lockfile_args(parser):
     group = get_group(parser, 'lockfile')
 
@@ -389,26 +346,21 @@ def add_lockfile_args(parser):
     return parser
 
 
-def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, **kwargs):
+def get_parser(description="Krux CLI", logging=True, lockfile=True, **kwargs):
     """
     Run setup and return an argument parser for Krux applications
 
     :keyword string description: Branding for the usage output.
     :keyword bool logging: Enable standard logging arguments.
-    :keyword bool stats: Enable standard stats argument.
 
     All other keywords are passed verbatim to
     :py:class:`argparse.ArgumentParser`
     """
     parser = ArgumentParser(description=description, **kwargs)
 
-    ### standard logging arguments
+    # standard logging arguments
     if logging:
         parser = add_logging_args(parser)
-
-    ### standard stats arguments
-    if stats:
-        parser = add_stats_args(parser)
 
     if lockfile:
         parser = add_lockfile_args(parser)
