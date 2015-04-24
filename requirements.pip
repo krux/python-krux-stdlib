@@ -4,14 +4,6 @@
 # Simple templating engine
 pystache==0.5.4
 
-# sphinx (for API documentation)
-Sphinx==1.2b1
-# needed by sphinx
-Jinja2==2.6
-# needed by sphinx
-Pygments==1.6
-docutils==0.10
-
 # stats
 statsd==3.1
 
@@ -19,6 +11,7 @@ statsd==3.1
 argparse==1.2.1
 GitPython==0.3.2.RC1
 simplejson==3.3.0
+
 # for lockfiles in cli
 lockfile==0.9.1
 
