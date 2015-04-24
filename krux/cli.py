@@ -55,11 +55,6 @@ from lockfile import LockFile, LockError, UnlockError
 # Internal Libraries
 #
 from krux.logging import LEVELS, DEFAULT_LOG_LEVEL
-from krux.stats import (
-    DEFAULT_STATSD_HOST,
-    DEFAULT_STATSD_PORT,
-    DEFAULT_STATSD_ENV,
-)
 
 import krux.io
 import krux.stats
@@ -118,15 +113,8 @@ class Application(object):
 
         self._init_logging(logger)
 
-        # get a stats object - any arguments are handled via the CLI
-        # pass '--stats' to enable stats using defaults (see krux.cli)
-        self.stats = krux.stats.get_stats(
-            client=getattr(self.args, 'stats', None),
-            prefix='cli.%s' % name,
-            env=getattr(self.args, 'stats_environment', None),
-            host=getattr(self.args, 'stats_host', None),
-            port=getattr(self.args, 'stats_port', None),
-        )
+        # get a stats object - configuration is taken from environment variables
+        self.stats = krux.stats.get_stats(prefix='cli.%s' % name)
 
         # Set up an krux.io object so we can run external commands
         self.io = krux.io.IO(logger=self.logger, stats=self.stats)
@@ -348,39 +336,6 @@ def add_logging_args(parser):
     return parser
 
 
-def add_stats_args(parser):
-    """
-    Add stats-related command-line arguments to the given parser.
-
-    :argument parser: parser instance to which the arguments will be added
-    """
-    group = get_group(parser, 'stats')
-
-    group.add_argument(
-        '--stats',
-        default=False,
-        action='store_true',
-        help='Enable sending statistics to statsd. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-host',
-        default=DEFAULT_STATSD_HOST,
-        help='Statsd host to send statistics to. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-port',
-        default=DEFAULT_STATSD_PORT,
-        help='Statsd port to send statistics to. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-environment',
-        default=DEFAULT_STATSD_ENV,
-        help='Statsd environment. (default: %(default)s)'
-    )
-
-    return parser
-
-
 def add_lockfile_args(parser):
     group = get_group(parser, 'lockfile')
 
@@ -393,17 +348,12 @@ def add_lockfile_args(parser):
     return parser
 
 
-def get_parser(description="Krux CLI",
-               logging=True,
-               stats=True,
-               lockfile=True,
-               **kwargs):
+def get_parser(description="Krux CLI", logging=True, lockfile=True, **kwargs):
     """
     Run setup and return an argument parser for Krux applications
 
     :keyword string description: Branding for the usage output.
     :keyword bool logging: Enable standard logging arguments.
-    :keyword bool stats: Enable standard stats argument.
 
     All other keywords are passed verbatim to
     :py:class:`argparse.ArgumentParser`
@@ -413,10 +363,6 @@ def get_parser(description="Krux CLI",
     # standard logging arguments
     if logging:
         parser = add_logging_args(parser)
-
-    # standard stats arguments
-    if stats:
-        parser = add_stats_args(parser)
 
     if lockfile:
         parser = add_lockfile_args(parser)
