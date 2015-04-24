@@ -13,8 +13,7 @@ Pygments==1.6
 docutils==0.10
 
 # stats
-kruxstatsd==0.2.2
-statsd==2.0.3
+statsd==3.1
 
 # Latest tested versions
 argparse==1.2.1
