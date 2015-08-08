@@ -132,7 +132,6 @@ def get_logger(name, syslog_facility=None, **kwargs):
         # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
         # to syslog vi a method by which syslog is listening.
         if platform.system() == 'Linux':
-            print "we are on %s" % platform.system()
             handler = logging.handlers.SysLogHandler('/dev/log', facility=syslog_facility)
         else:
             handler = logging.handlers.SysLogHandler(facility=syslog_facility)
