@@ -134,7 +134,8 @@ class Application(object):
     def _init_logging(self, logger):
         self.logger = logger or krux.logging.get_logger(
             self.name,
-            level=self.args.log_level
+            level=self.args.log_level,
+            syslog_facility=self.args.syslog_facility
         )
         if self.args.log_file is not None:
             handler = logging.handlers.WatchedFileHandler(self.args.log_file)
@@ -330,6 +331,12 @@ def add_logging_args(parser):
         '--log-file',
         default=None,
         help='Full-qualified path to the log file '
+        '(default: %(default)s).'
+    )
+    group.add_argument(
+        '--syslog-facility',
+        default=None,
+        help='syslog facility to use, instead of a file or stdout '
         '(default: %(default)s).'
     )
 

@@ -88,7 +88,7 @@ problems. Here is a guide to what each log level means at Krux:
 #
 from __future__ import absolute_import
 import logging
-
+import logging.handlers
 
 DEFAULT_LOG_LEVEL = 'warning'
 
@@ -113,7 +113,7 @@ def setup(level=DEFAULT_LOG_LEVEL):
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
 
 
-def get_logger(name, **kwargs):
+def get_logger(name, syslog_facility=None, **kwargs):
     """
     Run setup and return the logger for a Krux application.
 
@@ -121,6 +121,15 @@ def get_logger(name, **kwargs):
 
     All other keywords are passed verbatim to the setup() function.x
     """
-    setup(**kwargs)
-
-    return logging.getLogger(name)
+    if syslog_facility is None:
+        setup(**kwargs)
+        return logging.getLogger(name)
+    else:
+        assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
+        logger = logging.getLogger(name)
+        handler = logging.handlers.SysLogHandler(facility=syslog_facility)
+        logger.addHandler(handler)
+        # the default formatter munhges that tag for some reason
+        formatter = logging.Formatter('%(name)s: %(message)s')
+        handler.setFormatter(formatter)
+        return logger
