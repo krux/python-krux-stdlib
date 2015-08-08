@@ -140,7 +140,6 @@ def get_logger(name, syslog_facility=None, **kwargs):
         if 'level' in kwargs:
             logger.setLevel(LEVELS[kwargs['level']])
 
-
         # the default formatter munhges that tag for some reason
         formatter = logging.Formatter('%(name)s: %(message)s')
         handler.setFormatter(formatter)

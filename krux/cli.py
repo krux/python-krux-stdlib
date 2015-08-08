@@ -87,7 +87,7 @@ class Application(object):
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False):
+    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=None):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -111,7 +111,10 @@ class Application(object):
         # and parse them
         self.args = self.parser.parse_args()
 
-        self._init_logging(logger)
+        # the cli facility shoudl over-ride the passed-in syslog facility
+        if self.args.syslog_facility is not None:
+            syslog_facility = self.args.syslog_facility
+        self._init_logging(logger, syslog_facility)
 
         # get a stats object - configuration is taken from environment variables
         self.stats = krux.stats.get_stats(prefix='cli.%s' % name)
@@ -131,11 +134,11 @@ class Application(object):
         if lockfile:
             self.acquire_lockfile(lockfile)
 
-    def _init_logging(self, logger):
+    def _init_logging(self, logger, syslog_facility):
         self.logger = logger or krux.logging.get_logger(
             self.name,
             level=self.args.log_level,
-            syslog_facility=self.args.syslog_facility
+            syslog_facility=syslog_facility
         )
         if self.args.log_file is not None:
             handler = logging.handlers.WatchedFileHandler(self.args.log_file)
