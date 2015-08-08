@@ -89,6 +89,7 @@ problems. Here is a guide to what each log level means at Krux:
 from __future__ import absolute_import
 import logging
 import logging.handlers
+import platform
 
 DEFAULT_LOG_LEVEL = 'warning'
 
@@ -127,8 +128,20 @@ def get_logger(name, syslog_facility=None, **kwargs):
     else:
         assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
         logger = logging.getLogger(name)
-        handler = logging.handlers.SysLogHandler(facility=syslog_facility)
+        # On Linux, Python defaults to logging to localhost:514; on Ubuntu, rsyslog is not configured 
+        # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
+        # to syslog vi a method by which syslog is listening.
+        if platform.system() == 'Linux':
+            print "we are on %s" % platform.system()
+            handler = logging.handlers.SysLogHandler('/dev/log', facility=syslog_facility)
+        else:
+            handler = logging.handlers.SysLogHandler(facility=syslog_facility)
         logger.addHandler(handler)
+        # set the level, if it was passed:
+        if 'level' in kwargs:
+            logger.setLevel(LEVELS[kwargs['level']])
+
+
         # the default formatter munhges that tag for some reason
         formatter = logging.Formatter('%(name)s: %(message)s')
         handler.setFormatter(formatter)
