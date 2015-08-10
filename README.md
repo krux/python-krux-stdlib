@@ -5,9 +5,31 @@
 1.  Add the Krux pip repository and python-krux-stdlib to the top of
     your project's `requirements.pip` file:
 
-        ### Optional - also available on PyPi
-        --extra-index-url https://staticfiles.krxd.net/foss/pypi/
-        krux-stdlib==1.2.0
+```unix
+### Optional - also available on PyPi
+--extra-index-url https://staticfiles.krxd.net/foss/pypi/
+krux-stdlib==1.2.0
+```
+2.  Code up your app. First, define your class to inherit from krux.cli.Application. In the `__init__()` method, 
+initialize the superclass, passing in whatever parameters you need. Minimally:
+```python
+    class TestLoggingApp( krux.cli.Application ):
+        def __init__(self):
+            super(TestLoggingApp, self).__init__(name = 'testloggingapp', syslog_facility='local0')
+```
+
+2. Now you are ready to define any methods you might need under your Application() subclass:
+```python
+def foo_things(self):
+    self.logger.debug("just called foo_things()")
+```
+3. Finally, call the whole kit from `main()`:
+```python
+def main():
+    app = TestLoggingApp()
+    app.logger.debug("this is a debug level message")
+    app.foo_things()
+```
 
 ## Developing python-krux-stdlib
 

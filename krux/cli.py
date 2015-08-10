@@ -111,7 +111,7 @@ class Application(object):
         # and parse them
         self.args = self.parser.parse_args()
 
-        # the cli facility shoudl over-ride the passed-in syslog facility
+        # the cli facility should over-ride the passed-in syslog facility
         if self.args.syslog_facility is not None:
             syslog_facility = self.args.syslog_facility
         self._init_logging(logger, syslog_facility)
