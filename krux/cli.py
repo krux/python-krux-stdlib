@@ -333,13 +333,13 @@ def add_logging_args(parser):
     group.add_argument(
         '--log-file',
         default=None,
-        help='Full-qualified path to the log file'
+        help='Full-qualified path to the log file '
         '(default: %(default)s).'
     )
     group.add_argument(
         '--syslog-facility',
         default=None,
-        help='syslog facility to use, instead of a file or stdout'
+        help='syslog facility to use, instead of a file or stdout '
         '(default: %(default)s).'
     )
 
