@@ -1,5 +1,8 @@
 # krux-stdlib
 
+[![Code Climate](https://codeclimate.com/github/krux/python-krux-stdlib/badges/gpa.svg)](https://codeclimate.com/github/krux/python-krux-stdlib)
+
+
 ## Using python-krux-stdlib
 
 1.  Add the Krux pip repository and python-krux-stdlib to the top of
