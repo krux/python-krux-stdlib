@@ -87,7 +87,7 @@ class Application(object):
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=None):
+    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=None, log_to_stdout=True):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -114,7 +114,11 @@ class Application(object):
         # the cli facility should over-ride the passed-in syslog facility
         if self.args.syslog_facility is not None:
             syslog_facility = self.args.syslog_facility
-        self._init_logging(logger, syslog_facility)
+
+        # same idea here, the cli value should over-ride the passed-in value
+        if self.args.log_to_stdout is not True:
+            log_to_stdout = self.args.log_to_stdout
+        self._init_logging(logger, syslog_facility, log_to_stdout)
 
         # get a stats object - configuration is taken from environment variables
         self.stats = krux.stats.get_stats(prefix='cli.%s' % name)
@@ -134,11 +138,12 @@ class Application(object):
         if lockfile:
             self.acquire_lockfile(lockfile)
 
-    def _init_logging(self, logger, syslog_facility):
+    def _init_logging(self, logger, syslog_facility, log_to_stdout):
         self.logger = logger or krux.logging.get_logger(
             self.name,
             level=self.args.log_level,
-            syslog_facility=syslog_facility
+            syslog_facility=syslog_facility,
+            log_to_stdout=log_to_stdout,
         )
         if self.args.log_file is not None:
             handler = logging.handlers.WatchedFileHandler(self.args.log_file)
@@ -340,6 +345,14 @@ def add_logging_args(parser):
         '--syslog-facility',
         default=None,
         help='syslog facility to use, instead of a file or stdout '
+        '(default: %(default)s).'
+    )
+    group.add_argument(
+        '--no-log-to-stdout',
+        dest='log_to_stdout',
+        default=True,
+        action='store_false',
+        help='Suppress logging to stdout/stderr '
         '(default: %(default)s).'
     )
 

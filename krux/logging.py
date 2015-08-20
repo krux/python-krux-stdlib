@@ -102,7 +102,7 @@ LEVELS = dict((name, getattr(logging, name.upper()))
 #: <http://docs.python.org/2.6/library/logging.html#formatter>`_ used by Krux
 #: python applications.
 FORMAT = '%(asctime)s: %(name)s/%(levelname)-9s: %(message)s'
-
+SYSLOG_FORMAT='%(name)s: %(message)s'
 
 def setup(level=DEFAULT_LOG_LEVEL):
     """
@@ -113,34 +113,41 @@ def setup(level=DEFAULT_LOG_LEVEL):
     assert level in LEVELS.keys(), 'Invalid log level %s' % level
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
 
+def syslog_setup(name, syslog_facility, **kwargs):
+    assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
+    logger = logging.getLogger(name)
+    # On Linux, Python defaults to logging to localhost:514; on Ubuntu, rsyslog is not configured
+    # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
+    # to syslog vi a method by which syslog is listening.
+    if platform.system() == 'Linux':
+        handler = logging.handlers.SysLogHandler('/dev/log', facility=syslog_facility)
+    else:
+        handler = logging.handlers.SysLogHandler(facility=syslog_facility)
+    logger.addHandler(handler)
+    # set the level, if it was passed:
+    if 'level' in kwargs:
+        logger.setLevel(LEVELS[kwargs['level']])
 
-def get_logger(name, syslog_facility=None, **kwargs):
+    # the default formatter munhges that tag for some reason
+    formatter = logging.Formatter(SYSLOG_FORMAT)
+    handler.setFormatter(formatter)
+
+
+def get_logger(name, syslog_facility=None, log_to_stdout=True, **kwargs):
     """
     Run setup and return the logger for a Krux application.
 
     NAME is the logging namespace to use, should usually be __name__
 
-    All other keywords are passed verbatim to the setup() function.x
-    """
-    if syslog_facility is None:
-        setup(**kwargs)
-        return logging.getLogger(name)
-    else:
-        assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
-        logger = logging.getLogger(name)
-        # On Linux, Python defaults to logging to localhost:514; on Ubuntu, rsyslog is not configured 
-        # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
-        # to syslog vi a method by which syslog is listening.
-        if platform.system() == 'Linux':
-            handler = logging.handlers.SysLogHandler('/dev/log', facility=syslog_facility)
-        else:
-            handler = logging.handlers.SysLogHandler(facility=syslog_facility)
-        logger.addHandler(handler)
-        # set the level, if it was passed:
-        if 'level' in kwargs:
-            logger.setLevel(LEVELS[kwargs['level']])
+    setup() and syslog_setup() both call getLogger(name), so there will be only one logger.
 
-        # the default formatter munhges that tag for some reason
-        formatter = logging.Formatter('%(name)s: %(message)s')
-        handler.setFormatter(formatter)
-        return logger
+    All other keywords are passed verbatim to the setup() functions.
+    """
+
+    # are we logging to stdout/stderr?
+    if log_to_stdout:
+        setup(**kwargs)
+    # are we logging to syslog?
+    if syslog_facility is not None:
+        syslog_setup(name, syslog_facility, **kwargs)
+    return logging.getLogger(name)
