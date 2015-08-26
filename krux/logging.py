@@ -92,6 +92,8 @@ import logging.handlers
 import platform
 
 DEFAULT_LOG_LEVEL = 'warning'
+# local7 is chosen because in a typical default syslog configuration, it is *not* logged anywhere.
+DEFAULT_LOG_FACILITY = 'local7'
 
 #: Map human-friendly log level strings to the constants in the
 #: :py:mod:`python:logging` module.

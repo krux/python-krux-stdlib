@@ -54,7 +54,7 @@ from lockfile import LockFile, LockError, UnlockError
 #
 # Internal Libraries
 #
-from krux.logging import LEVELS, DEFAULT_LOG_LEVEL
+from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
 
 import krux.io
 import krux.stats
@@ -87,7 +87,7 @@ class Application(object):
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=None, log_to_stdout=True):
+    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=DEFAULT_LOG_FACILITY, log_to_stdout=True):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -343,8 +343,8 @@ def add_logging_args(parser):
     )
     group.add_argument(
         '--syslog-facility',
-        default=None,
-        help='syslog facility to use, instead of a file or stdout '
+        default=DEFAULT_LOG_FACILITY,
+        help='syslog facility to use '
         '(default: %(default)s).'
     )
     group.add_argument(
