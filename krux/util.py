@@ -29,3 +29,29 @@ def hasmethod(obj, method):
     :argument string method: the name of the method
     """
     return callable(getattr(obj, method, None))
+
+
+def get_percentage(value, total, decimal_points=4, default=None):
+    """
+    @param value: value in int or double
+    @param total: total in int or double
+    @param decimal_points: how many decimal points for return result
+    @param default: default return value if percentage cannot be calculated
+    @return: the percentage: value of total.
+    """
+    return round(
+        divide_or_zero(value * 1.0, total * 1.0, 0.0) * 100.0,
+        decimal_points
+    )
+
+
+def divide_or_zero(numerator, denominator, default=None):
+    """
+    @param numerator: numerator
+    @param denominator: denominator
+    @param default: default return
+    @return: numerator / denominator
+    """
+    if denominator == 0:
+        return default
+    return numerator / denominator
