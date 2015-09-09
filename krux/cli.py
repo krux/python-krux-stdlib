@@ -116,7 +116,7 @@ class Application(object):
             syslog_facility = self.args.syslog_facility
 
         # same idea here, the cli value should over-ride the passed-in value
-        if self.args.log_to_stdout is not True:
+        if not self.args.log_to_stdout:
             log_to_stdout = self.args.log_to_stdout
         self._init_logging(logger, syslog_facility, log_to_stdout)
 

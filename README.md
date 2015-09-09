@@ -13,7 +13,7 @@ initialize the superclass, passing in whatever parameters you need. Minimally:
 
     class TestLoggingApp( krux.cli.Application ):
         def __init__(self):
-            super(TestLoggingApp, self).__init__(name = 'testloggingapp', syslog_facility='local0')
+            super(TestLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0')
 
 2. Now you are ready to define any methods you might need under your Application() subclass:
 

@@ -17,7 +17,7 @@ class ExampleLoggingApp( krux.cli.Application ):
         # the default is to print them out to the console; setting a syslog facility
         # means messages will go to syslog with the named facility and called severity;
         # your local syslog config will need to route those messages to a file or remote syslog.
-        super(ExampleLoggingApp, self).__init__(name = 'testloggingapp', syslog_facility='local0', log_to_stdout=False)
+        super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0', log_to_stdout=False)
 
     def run(self):
         """
