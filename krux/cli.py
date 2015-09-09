@@ -54,7 +54,7 @@ from lockfile import LockFile, LockError, UnlockError
 #
 # Internal Libraries
 #
-from krux.logging import LEVELS, DEFAULT_LOG_LEVEL
+from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
 
 import krux.io
 import krux.stats
@@ -87,7 +87,7 @@ class Application(object):
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False):
+    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=DEFAULT_LOG_FACILITY, log_to_stdout=True):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -111,7 +111,14 @@ class Application(object):
         # and parse them
         self.args = self.parser.parse_args()
 
-        self._init_logging(logger)
+        # the cli facility should over-ride the passed-in syslog facility
+        if self.args.syslog_facility is not None:
+            syslog_facility = self.args.syslog_facility
+
+        # same idea here, the cli value should over-ride the passed-in value
+        if not self.args.log_to_stdout:
+            log_to_stdout = self.args.log_to_stdout
+        self._init_logging(logger, syslog_facility, log_to_stdout)
 
         # get a stats object - configuration is taken from environment variables
         self.stats = krux.stats.get_stats(prefix='cli.%s' % name)
@@ -131,10 +138,12 @@ class Application(object):
         if lockfile:
             self.acquire_lockfile(lockfile)
 
-    def _init_logging(self, logger):
+    def _init_logging(self, logger, syslog_facility, log_to_stdout):
         self.logger = logger or krux.logging.get_logger(
             self.name,
-            level=self.args.log_level
+            level=self.args.log_level,
+            syslog_facility=syslog_facility,
+            log_to_stdout=log_to_stdout,
         )
         if self.args.log_file is not None:
             handler = logging.handlers.WatchedFileHandler(self.args.log_file)
@@ -330,6 +339,20 @@ def add_logging_args(parser):
         '--log-file',
         default=None,
         help='Full-qualified path to the log file '
+        '(default: %(default)s).'
+    )
+    group.add_argument(
+        '--syslog-facility',
+        default=DEFAULT_LOG_FACILITY,
+        help='syslog facility to use '
+        '(default: %(default)s).'
+    )
+    group.add_argument(
+        '--no-log-to-stdout',
+        dest='log_to_stdout',
+        default=True,
+        action='store_false',
+        help='Suppress logging to stdout/stderr '
         '(default: %(default)s).'
     )
 
