@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 
 # We use the version to construct the DOWNLOAD_URL.
-VERSION = '1.3.0'
+VERSION = '1.3.1'
 
 # URL to the repository on Github.
 REPO_URL = 'https://github.com/krux/python-krux-stdlib'
