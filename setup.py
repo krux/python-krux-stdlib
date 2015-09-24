@@ -15,7 +15,6 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # forget to tag!
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
-
 setup(
     name='krux-stdlib',
     version=VERSION,
