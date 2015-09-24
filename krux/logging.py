@@ -127,7 +127,7 @@ def syslog_setup(name, syslog_facility, **kwargs):
     # device, it apparently does not exist in a docker container; at the very least, not in a Travis CI
     # build docker container. Can't use os.path.isfile() which returns False for devices.
     log_device = '/dev/log'
-    if platform.system() == 'Linux' and os.access(log_device, os.W_OK):
+    if platform.system() == 'Linux' and os.path.exists(log_device) and os.access(log_device, os.W_OK):
         handler = logging.handlers.SysLogHandler(log_device, facility=syslog_facility)
     else:
         handler = logging.handlers.SysLogHandler(facility=syslog_facility)
