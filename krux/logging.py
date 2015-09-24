@@ -90,6 +90,7 @@ from __future__ import absolute_import
 import logging
 import logging.handlers
 import platform
+import os
 
 DEFAULT_LOG_LEVEL = 'warning'
 # local7 is chosen because in a typical default syslog configuration, it is *not* logged anywhere.
@@ -106,6 +107,7 @@ LEVELS = dict((name, getattr(logging, name.upper()))
 FORMAT = '%(asctime)s: %(name)s/%(levelname)-9s: %(message)s'
 SYSLOG_FORMAT='%(name)s: %(message)s'
 
+
 def setup(level=DEFAULT_LOG_LEVEL):
     """
     Configure the root logger for a Krux application.
@@ -115,14 +117,18 @@ def setup(level=DEFAULT_LOG_LEVEL):
     assert level in LEVELS.keys(), 'Invalid log level %s' % level
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
 
+
 def syslog_setup(name, syslog_facility, **kwargs):
     assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
     logger = logging.getLogger(name)
     # On Linux, Python defaults to logging to localhost:514; on Ubuntu, rsyslog is not configured
     # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
-    # to syslog vi a method by which syslog is listening.
-    if platform.system() == 'Linux':
-        handler = logging.handlers.SysLogHandler('/dev/log', facility=syslog_facility)
+    # to syslog via a method by which syslog is listening. Also need to test for the existence of the
+    # device, it apparently does not exist in a docker container; at the very least, not in a Travis CI
+    # build docker container. Can't use os.path.isfile() which returns False for devices.
+    log_device = '/dev/log'
+    if platform.system() == 'Linux' and os.access(log_device, os.W_OK):
+        handler = logging.handlers.SysLogHandler(log_device, facility=syslog_facility)
     else:
         handler = logging.handlers.SysLogHandler(facility=syslog_facility)
     logger.addHandler(handler)

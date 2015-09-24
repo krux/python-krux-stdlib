@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 
 # We use the version to construct the DOWNLOAD_URL.
-VERSION = '1.3.0'
+VERSION = '1.3.1'
 
 # URL to the repository on Github.
 REPO_URL = 'https://github.com/krux/python-krux-stdlib'
@@ -14,7 +14,6 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # Github will generate a tarball as long as you tag your releases, so don't
 # forget to tag!
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
-
 
 setup(
     name='krux-stdlib',
