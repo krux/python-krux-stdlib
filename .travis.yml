@@ -1,2 +1,4 @@
 language: python
 install: pip install -r requirements.pip
+script: python setup.py install
+
