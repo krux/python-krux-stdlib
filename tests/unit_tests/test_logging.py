@@ -12,7 +12,9 @@ __author__ = 'Jos Boumans'
 # Third Party Libraries #
 #########################
 
+from mock       import patch, call
 from nose.tools import assert_true
+from pprint     import pprint
 
 ######################
 # Internal Libraries #
@@ -20,10 +22,13 @@ from nose.tools import assert_true
 
 import krux.logging
 
-
 def test_get_logger():
     """
     Test getting a logger from krux.logging
     """
     logger = krux.logging.get_logger(__name__)
     assert_true(logger)
+
+
+
+

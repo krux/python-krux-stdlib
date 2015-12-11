@@ -33,6 +33,8 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+.noseids
+cover/
 
 # Translations
 *.mo
@@ -52,5 +54,3 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-.noseids
-cover
