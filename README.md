@@ -4,6 +4,16 @@
 
 https://staticfiles.krxd.net/foss/docs/pypi/krux-stdlib/
 
+## CRITICAL NOTE about versions!
+
+For historical reasons a major refactor/redesign was started but
+aborted partway through the release process. As a result, the 1.x
+series of `python-krux-stdlib` **should not be used**. Please use
+either pre-1.x releases or the 2.x series.
+
+Commit a2ff5ab is where we discarded the 1.x series and "reset" master
+to be based off of 0.8.x. That markes the beginning of the 2.x series.
+
 ## Using python-krux-stdlib
 
 1.  Add the Krux pip repository and python-krux-stdlib to the top of
