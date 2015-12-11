@@ -90,7 +90,7 @@ class Application(object):
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False):
+    def __init__(self, name, parser=None, logger=None, lockfile=False, log_to_stdout=True):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -114,7 +114,10 @@ class Application(object):
         ### and parse them
         self.args = self.parser.parse_args()
 
-        self._init_logging(logger)
+        # the cli value should over-ride the passed-in value
+        if not self.args.log_to_stdout:
+            log_to_stdout = self.args.log_to_stdout
+        self._init_logging(logger, log_to_stdout)
 
         ### get a stats object - any arguments are handled via the CLI
         ### pass '--stats' to enable stats using defaults (see krux.cli)
@@ -139,10 +142,11 @@ class Application(object):
         if lockfile:
             self.acquire_lock(lockfile)
 
-    def _init_logging(self, logger):
+    def _init_logging(self, logger, log_to_stdout):
         self.logger = logger or krux.logging.get_logger(
             self.name,
-            level=self.args.log_level
+            level=self.args.log_level,
+            log_to_stdout=log_to_stdout,
         )
         if self.args.log_file is not None:
             handler = logging.handlers.WatchedFileHandler(self.args.log_file)
@@ -288,6 +292,14 @@ def add_logging_args(parser):
         '--log-file',
         default=None,
         help='Full-qualified path to the log file '
+        '(default: %(default)s).'
+    )
+    group.add_argument(
+        '--no-log-to-stdout',
+        dest='log_to_stdout',
+        default=True,
+        action='store_false',
+        help='Suppress logging to stdout/stderr '
         '(default: %(default)s).'
     )
 

@@ -115,7 +115,7 @@ def setup(level='warning'):
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
 
 
-def get_logger(name, **kwargs):
+def get_logger(name, log_to_stdout=True, **kwargs):
     """
     Run setup and return the root logger for a Krux application.
 
@@ -124,5 +124,7 @@ def get_logger(name, **kwargs):
     All other keywords are passed verbatim to :py:func:`setup`
     """
 
-    setup(**kwargs)
+    # are we logging to stdout/stderr?
+    if log_to_stdout:
+        setup(**kwargs)
     return logging.getLogger(name)
