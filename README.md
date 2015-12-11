@@ -17,9 +17,9 @@ https://staticfiles.krxd.net/foss/docs/pypi/krux-stdlib/
     krux.cli.Application. In the `__init__()` method, initialize the
     superclass, passing in whatever parameters you need. Minimally:
 
-    class TestLoggingApp( krux.cli.Application ):
-        def __init__(self):
-            super(TestLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0')
+        class TestLoggingApp( krux.cli.Application ):
+            def __init__(self):
+                super(TestLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0')
 
 3. Now you are ready to define any methods you might need under your
    Application() subclass:
