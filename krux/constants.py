@@ -12,12 +12,6 @@ Constants for the Krux Python library
 from __future__ import absolute_import
 
 ######################
-# Logging
-######################
-#:
-DEFAULT_LOG_LEVEL = 'warning'
-
-######################
 # Stats
 ######################
 #:

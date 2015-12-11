@@ -81,16 +81,19 @@ problems. Here is a guide to what each log level means at Krux:
     stop accepting traffic. These messages should be extremely rare in any
     application.
 """
-######################
-# Standard Libraries #
-######################
+#
+# Standard Libraries
+#
 from __future__ import absolute_import
-
 import logging
+import logging.handlers
+import platform
+import os
 
-#############
-# Constants #
-#############
+DEFAULT_LOG_LEVEL = 'warning'
+# local7 is chosen because in a typical default syslog configuration, it is *not* logged anywhere.
+DEFAULT_LOG_FACILITY = 'local7'
+
 #: Map human-friendly log level strings to the constants in the
 #: :py:mod:`python:logging` module.
 LEVELS = dict((name, getattr(logging, name.upper()))
@@ -100,29 +103,57 @@ LEVELS = dict((name, getattr(logging, name.upper()))
 #: <http://docs.python.org/2.6/library/logging.html#formatter>`_ used by Krux
 #: python applications.
 FORMAT = '%(asctime)s: %(name)s/%(levelname)-9s: %(message)s'
+SYSLOG_FORMAT='%(name)s: %(message)s'
 
 
-#############
-# Functions #
-#############
-def setup(level='warning'):
+def setup(level=DEFAULT_LOG_LEVEL):
     """
     Configure the root logger for a Krux application.
 
-    :keyword string level: log level, one of :py:data:`krux.logging.LEVELS`
+    LEVEL is the log level, one of LEVELS
     """
     assert level in LEVELS.keys(), 'Invalid log level %s' % level
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
 
 
-def get_logger(name, **kwargs):
+def syslog_setup(name, syslog_facility, **kwargs):
+    assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
+    logger = logging.getLogger(name)
+    # On Linux, Python defaults to logging to localhost:514; on Ubuntu, rsyslog is not configured
+    # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
+    # to syslog via a method by which syslog is listening. Also need to test for the existence of the
+    # device, it apparently does not exist in a docker container; at the very least, not in a Travis CI
+    # build docker container. Can't use os.path.isfile() which returns False for devices.
+    log_device = '/dev/log'
+    if platform.system() == 'Linux' and os.path.exists(log_device) and os.access(log_device, os.W_OK):
+        handler = logging.handlers.SysLogHandler(log_device, facility=syslog_facility)
+    else:
+        handler = logging.handlers.SysLogHandler(facility=syslog_facility)
+    logger.addHandler(handler)
+    # set the level, if it was passed:
+    if 'level' in kwargs:
+        logger.setLevel(LEVELS[kwargs['level']])
+
+    # the default formatter munhges that tag for some reason
+    formatter = logging.Formatter(SYSLOG_FORMAT)
+    handler.setFormatter(formatter)
+
+
+def get_logger(name, syslog_facility=None, log_to_stdout=True, **kwargs):
     """
-    Run setup and return the root logger for a Krux application.
+    Run setup and return the logger for a Krux application.
 
-    :argument name: the logging namespace to use, should usually be __name__
+    NAME is the logging namespace to use, should usually be __name__
 
-    All other keywords are passed verbatim to :py:func:`setup`
+    setup() and syslog_setup() both call getLogger(name), so there will be only one logger.
+
+    All other keywords are passed verbatim to the setup() functions.
     """
 
-    setup(**kwargs)
+    # are we logging to stdout/stderr?
+    if log_to_stdout:
+        setup(**kwargs)
+    # are we logging to syslog?
+    if syslog_facility is not None:
+        syslog_setup(name, syslog_facility, **kwargs)
     return logging.getLogger(name)
