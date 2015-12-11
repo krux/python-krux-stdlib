@@ -1,7 +1,18 @@
 # krux-stdlib
 
-For API documentation, see
+[![Code Climate](https://codeclimate.com/github/krux/python-krux-stdlib/badges/gpa.svg)](https://codeclimate.com/github/krux/python-krux-stdlib)
+
 https://staticfiles.krxd.net/foss/docs/pypi/krux-stdlib/
+
+## CRITICAL NOTE about versions!
+
+For historical reasons a major refactor/redesign was started but
+aborted partway through the release process. As a result, the 1.x
+series of `python-krux-stdlib` **should not be used**. Please use
+either pre-1.x releases or the 2.x series.
+
+Commit a2ff5ab is where we discarded the 1.x series and "reset" master
+to be based off of 0.8.x. That markes the beginning of the 2.x series.
 
 ## Using python-krux-stdlib
 
@@ -10,7 +21,28 @@ https://staticfiles.krxd.net/foss/docs/pypi/krux-stdlib/
 
         ### Optional - also available on PyPi
         --extra-index-url https://staticfiles.krxd.net/foss/pypi/
-        krux-stdlib==0.8.1
+        krux-stdlib==2.0.0
+
+2.  Code up your app. First, define your class to inherit from
+    krux.cli.Application. In the `__init__()` method, initialize the
+    superclass, passing in whatever parameters you need. Minimally:
+
+        class TestLoggingApp( krux.cli.Application ):
+            def __init__(self):
+                super(TestLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0')
+
+3. Now you are ready to define any methods you might need under your
+   Application() subclass:
+
+        def foo_things(self):
+            self.logger.debug("just called foo_things()")
+
+4. Finally, call the whole kit from `main()`:
+
+        def main():
+            app = TestLoggingApp()
+            app.logger.debug("this is a debug level message")
+            app.foo_things()
 
 ## Developing python-krux-stdlib
 
