@@ -245,6 +245,34 @@ class Application(object):
         self._run_exit_hooks()
         raise CriticalApplicationError(err)
 
+    @contextmanager
+    def context(self):
+        """
+        Returns a context manager that you can use with the 'with' keyword.
+        Using this context manager means that you do not need to explicitly
+        call exit (if exiting with the default exit code of 0) and do no need
+        to use raise_critical_error when raising exceptions as this context
+        manager ensures that the exit hooks are always called (and hence the
+        lockfile is always released).
+
+        Ex:
+        app = Application()
+        with app.context():
+            app.logger.info('Hello World')
+            ...
+        """
+        try:
+            yield
+        except:
+            # always run exit hooks, even on exceptions
+            self._run_exit_hooks()
+            raise
+            # XXX: we may want to change this to log the exception and
+            # automatically exit with a non-zero exit code
+
+        # if the block finishes normally, call exit
+        self.exit()
+
 
 ##########################
 ### Functional interface #
