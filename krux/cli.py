@@ -37,6 +37,7 @@ Usage::
 ######################
 from __future__ import absolute_import
 from functools import partial
+from contextlib import contextmanager
 import sys
 ### This is still here in case something else is using it via an import.
 ### This should be removed.
