@@ -37,6 +37,7 @@ Usage::
 ######################
 from __future__ import absolute_import
 from functools import partial
+from contextlib import contextmanager
 import sys
 ### This is still here in case something else is using it via an import.
 ### This should be removed.
@@ -67,7 +68,6 @@ from krux.constants import (
 import krux.io
 import krux.stats
 import krux.logging
-
 
 ######################
 ### Object interface #
@@ -160,7 +160,7 @@ class Application(object):
 
     def acquire_lock(self, lockfile=True):
         ### Did you just tell us to use a lock, or did you give us a location?
-        _lockfile = (os.path.join(DEFAULT_LOCK_DIR, self.name)
+        _lockfile = (os.path.join(self.args.lock_dir, self.name)
                      if lockfile is True
                      else lockfile)
 
@@ -245,6 +245,34 @@ class Application(object):
         self.logger.critical(err)
         self._run_exit_hooks()
         raise CriticalApplicationError(err)
+
+    @contextmanager
+    def context(self):
+        """
+        Returns a context manager that you can use with the 'with' keyword.
+        Using this context manager means that you do not need to explicitly
+        call exit (if exiting with the default exit code of 0) and do no need
+        to use raise_critical_error when raising exceptions as this context
+        manager ensures that the exit hooks are always called (and hence the
+        lockfile is always released).
+
+        Ex:
+        app = Application()
+        with app.context():
+            app.logger.info('Hello World')
+            ...
+        """
+        try:
+            yield
+        except:
+            # always run exit hooks, even on exceptions
+            self._run_exit_hooks()
+            raise
+            # XXX: we may want to change this to log the exception and
+            # automatically exit with a non-zero exit code
+
+        # if the block finishes normally, call exit
+        self.exit()
 
 
 ##########################
@@ -348,8 +376,18 @@ def add_stats_args(parser):
 
     return parser
 
+def add_lockfile_args(parser):
+    group = get_group(parser, 'lockfile')
 
-def get_parser(description="Krux CLI", logging=True, stats=True, **kwargs):
+    group.add_argument(
+        '--lock-dir',
+        default=DEFAULT_LOCK_DIR,
+        help='Dir where lock files are stored (default: %(default)s)'
+    )
+
+    return parser
+
+def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, **kwargs):
     """
     Run setup and return an argument parser for Krux applications
 
@@ -369,6 +407,10 @@ def get_parser(description="Krux CLI", logging=True, stats=True, **kwargs):
     ### standard stats arguments
     if stats:
         parser = add_stats_args(parser)
+
+    ### standard lockfile args
+    if lockfile:
+        parser = add_lockfile_args(parser)
 
     return parser
 
