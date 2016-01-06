@@ -136,7 +136,7 @@ class TestApplication(TestCase):
         mock_partial.assert_called_once_with(mock_hook)
         assert_equal(self.app._exit_hooks, [mock_partial.return_value])
 
-    @patch('krux.cli.exit')
+    @patch('krux.cli.sys.exit')
     def test_exit_code(self, mock_exit):
         """
         krux.cli.Application.exit calls sys.exit with the provided exit code.
@@ -147,7 +147,7 @@ class TestApplication(TestCase):
 
         mock_exit.assert_called_once_with(code)
 
-    @patch('krux.cli.exit')
+    @patch('krux.cli.sys.exit')
     def test_exit_with_hook(self, mock_exit):
         """
         krux.cli.Application calls the exit hooks as expected.
@@ -162,7 +162,7 @@ class TestApplication(TestCase):
         for hook in mock_hooks:
             hook.assert_called_once_with()
 
-    @patch('krux.cli.exit')
+    @patch('krux.cli.sys.exit')
     def test_exit_with_hook_exception(self, mock_exit):
         """
         krux.cli.Application logs exceptions raised by
