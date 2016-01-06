@@ -21,7 +21,7 @@ to be based off of 0.8.x. That markes the beginning of the 2.x series.
 
         ### Optional - also available on PyPi
         --extra-index-url https://staticfiles.krxd.net/foss/pypi/
-        krux-stdlib==2.0.0
+        krux-stdlib==2.1.1
 
 2.  Code up your app. First, define your class to inherit from
     krux.cli.Application. In the `__init__()` method, initialize the
