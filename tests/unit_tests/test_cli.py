@@ -178,6 +178,9 @@ class TestApplication(TestCase):
         assert_true(mock_logger.exception.called)
 
     def test_raise_critical_error(self):
+        """
+        krux.cli.Application executes the exit hooks, logs, and wraps the error as CriticalApplicationError
+        """
         # Mock a logger
         mock_logger = MagicMock(spec=Logger, autospec=True)
         app = cli.Application(self.__class__.__name__, logger=mock_logger)
@@ -192,6 +195,31 @@ class TestApplication(TestCase):
 
             mock_hook.assert_called_once_with()
             mock_logger.critical.assert_called_once_with(e)
+
+    @patch('krux.cli.sys.exit')
+    def test_context_success(self, mock_exit):
+        """
+        krux.cli.Application exits with 0 upon success
+        """
+        with self.app.context():
+            # Executes somethings
+            self.app.logger.info('Hello World')
+
+        mock_exit.assert_called_once_with(0)
+
+    def test_context_failure(self):
+        """
+        krux.cli.Application executes the exit hooks and re-raise the error upon failure
+        """
+        # Add an exit hook
+        mock_hook = MagicMock(return_value=True)
+        self.app.add_exit_hook(mock_hook)
+
+        with self.assertRaises(StandardError):
+            with self.app.context():
+                raise StandardError('Test Error')
+
+        mock_hook.assert_called_once_with()
 
 ###
 ### Test krux.cli.Application
