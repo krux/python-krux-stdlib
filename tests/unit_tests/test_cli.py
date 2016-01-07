@@ -179,7 +179,7 @@ class TestApplication(TestCase):
 
     def test_raise_critical_error(self):
         """
-        krux.cli.Application executes the exit hooks, logs, and wraps the error as CriticalApplicationError
+        krux.cli.Application executes the exit hooks, logs, and wraps the error as CriticalApplicationError upon raise_critical_error call
         """
         # Mock a logger
         mock_logger = MagicMock(spec=Logger, autospec=True)
@@ -190,11 +190,13 @@ class TestApplication(TestCase):
         app.add_exit_hook(mock_hook)
 
         with self.assertRaises(cli.CriticalApplicationError):
-            e = StandardError('Test Error')
-            app.raise_critical_error(e)
+            try:
+                raise StandardError('Test Error')
+            except Exception, e:
+                app.raise_critical_error(e)
 
-            mock_hook.assert_called_once_with()
-            mock_logger.critical.assert_called_once_with(e)
+        mock_hook.assert_called_once_with()
+        mock_logger.critical.assert_called_once_with(e)
 
     @patch('krux.cli.sys.exit')
     def test_context_success(self, mock_exit):
