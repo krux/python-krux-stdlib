@@ -177,22 +177,6 @@ class TestApplication(TestCase):
 
         assert_true(mock_logger.exception.called)
 
-    def test_raise_critical_error(self):
-        # Mock a logger
-        mock_logger = MagicMock(spec=Logger, autospec=True)
-        app = cli.Application(self.__class__.__name__, logger=mock_logger)
-
-        # Add an exit hook
-        mock_hook = MagicMock(return_value=True)
-        app.add_exit_hook(mock_hook)
-
-        with self.assertRaises(cli.CriticalApplicationError):
-            e = StandardError('Test Error')
-            app.raise_critical_error(e)
-
-            mock_hook.assert_called_once_with()
-            mock_logger.critical.assert_called_once_with(e)
-
 ###
 ### Test krux.cli.Application
 ###
