@@ -244,12 +244,7 @@ class Application(object):
 
         self.logger.critical(err)
         self._run_exit_hooks()
-
-        exc_info = sys.exc_info()
-        if exc_info[1] is err:
-            raise CriticalApplicationError, CriticalApplicationError(exc_info[1]), exc_info[2]
-        else:
-            raise CriticalApplicationError(err)
+        raise CriticalApplicationError(err)
 
     @contextmanager
     def context(self):
