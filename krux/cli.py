@@ -105,6 +105,10 @@ class Application(object):
         self.name = name
 
         ### get a CLI parser
+        ###
+        ### Since this is a functional interface, we pass along whether or not stdout logging is desired
+        ### for a particular subclass/script
+        ###
         self.parser = parser or krux.cli.get_parser(description=name, logging_stdout_default=log_to_stdout)
 
         ### get more arguments, if needed
@@ -332,6 +336,17 @@ def add_logging_args(parser, stdout_default=True):
         help='syslog facility to use '
         '(default: %(default)s).'
     )
+    ###
+    ### If logging to stdout is enabled (the default, defined by the log_to_stdout arg
+    ### in __init__(), we provide a --no-log-to-stdout cli arg to disable it.
+    ###
+    ### If our calling script or subclass chooses to disable stdout logging by default,
+    ### we instead provide a --log-to-stdout arg to enable it, for debugging etc.
+    ###
+    ### This is particularly useful for Icinga monitoring scripts, where we don't want
+    ### logging info to reach stdout during normal operation, because Icinga ingests
+    ### everything that's written there.
+    ###
     if stdout_default:
         group.add_argument(
             '--no-log-to-stdout',
@@ -403,6 +418,7 @@ def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, 
     :keyword string description: Branding for the usage output.
     :keyword bool logging: Enable standard logging arguments.
     :keyword bool stats: Enable standard stats argument.
+    :keyword bool logging_stdout_default: Whether or not logging to stdout is enabled (affects cli args setup)
 
     All other keywords are passed verbatim to
     :py:class:`argparse.ArgumentParser`
