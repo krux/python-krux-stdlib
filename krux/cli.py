@@ -105,7 +105,7 @@ class Application(object):
         self.name = name
 
         ### get a CLI parser
-        self.parser = parser or krux.cli.get_parser(description=name)
+        self.parser = parser or krux.cli.get_parser(description=name, logging_stdout_default=log_to_stdout)
 
         ### get more arguments, if needed
         self.add_cli_arguments(self.parser)
@@ -118,7 +118,7 @@ class Application(object):
             syslog_facility = self.args.syslog_facility
 
         # same idea here, the cli value should over-ride the passed-in value
-        if not self.args.log_to_stdout:
+        if self.args.log_to_stdout != log_to_stdout:
             log_to_stdout = self.args.log_to_stdout
         self._init_logging(logger, syslog_facility, log_to_stdout)
 
@@ -303,7 +303,7 @@ def get_group(parser, group_name):
     return group
 
 
-def add_logging_args(parser):
+def add_logging_args(parser, stdout_default=True):
     """
     Add logging-related command-line arguments to the given parser.
 
@@ -332,14 +332,23 @@ def add_logging_args(parser):
         help='syslog facility to use '
         '(default: %(default)s).'
     )
-    group.add_argument(
-        '--no-log-to-stdout',
-        dest='log_to_stdout',
-        default=True,
-        action='store_false',
-        help='Suppress logging to stdout/stderr '
-        '(default: %(default)s).'
-    )
+    if stdout_default:
+        group.add_argument(
+            '--no-log-to-stdout',
+            dest='log_to_stdout',
+            default=True,
+            action='store_false',
+            help='Suppress logging to stdout/stderr '
+            '(default: %(default)s).'
+        )
+    else:
+        group.add_argument(
+            '--log-to-stdout',
+            default=False,
+            action='store_true',
+            help='Log to stdout/stderr -- useful for debugging! '
+            '(default: %(default)s).'
+        )
 
     return parser
 
@@ -387,7 +396,7 @@ def add_lockfile_args(parser):
 
     return parser
 
-def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, **kwargs):
+def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, logging_stdout_default=True, **kwargs):
     """
     Run setup and return an argument parser for Krux applications
 
@@ -402,7 +411,7 @@ def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, 
 
     ### standard logging arguments
     if logging:
-        parser = add_logging_args(parser)
+        parser = add_logging_args(parser, logging_stdout_default)
 
     ### standard stats arguments
     if stats:
