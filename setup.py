@@ -54,5 +54,5 @@ setup(
         'coverage',
         'mock',
         'nose',
-    ]
+    ],
 )
