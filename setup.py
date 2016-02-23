@@ -49,6 +49,7 @@ setup(
         'fudge',
         'gitdb',
         'smmap',
+        'subprocess32',
     ],
     tests_require=[
         'coverage',
