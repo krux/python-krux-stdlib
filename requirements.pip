@@ -24,6 +24,9 @@ tornado==3.0.1
 # for lockfiles in cli
 lockfile==0.9.1
 
+# Python 3's subprocess for newer features
+subprocess32==3.2.7
+
 # Test libraries
 coverage==3.6
 mock==1.0.1

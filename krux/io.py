@@ -25,11 +25,11 @@ Usage::
 ######################
 from __future__ import absolute_import
 
-import subprocess
-
 #########################
 # Third Party Libraries #
 #########################
+
+import subprocess32
 
 ######################
 # Internal Libraries #
@@ -65,7 +65,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = [], shell = None):
+    def run(self, command, filters = [], shell = None, timeout = None):
         log     = self.___logger
         stats   = self.___stats
 
@@ -90,21 +90,21 @@ class IORunCmd(object):
             shell = isinstance(command, basestring)
 
         try:
-            process = subprocess.Popen(
+            process = subprocess32.Popen(
                             command,
-                            stderr = subprocess.PIPE,
-                            stdout = subprocess.PIPE,
+                            stderr = subprocess32.PIPE,
+                            stdout = subprocess32.PIPE,
                             shell = shell
                          )
 
             # Note that using communicate() buffers all output in memory and can
             # hang if the buffer is filled.
-            stdout, stderr = process.communicate()
+            stdout, stderr = process.communicate(timeout = timeout)
 
             ### set the bookkeeping variables.
             ### the exit code is set on the process; communicate doesn't provide
             ### the exit code, just the outputs. So check it here. For details:
-            ### http://docs.python.org/2.6/library/subprocess.html#subprocess.Popen
+            ### https://docs.python.org/3.3/library/subprocess.html#subprocess.Popen.communicate
             self.returncode = process.returncode
             self.ok         = False if self.returncode > 0 else True
 

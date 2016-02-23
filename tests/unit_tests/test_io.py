@@ -18,6 +18,7 @@ import sys
 # Third Party Libraries #
 #########################
 from nose.tools import assert_equal, assert_true, assert_false, raises
+from subprocess32 import TimeoutExpired
 
 ######################
 # Internal Libraries #
@@ -106,5 +107,10 @@ class TestApplication(TestCase):
         assert_false(len(cmd.stdout))
         assert_false(len(cmd.stderr))
 
+    def test_timeout(self):
+        cmd = self.io.run_cmd( command = 'sleep 30', timeout = 2 )
 
-
+        assert_false(cmd.ok)
+        assert_true(cmd.exception)
+        assert_true(isinstance(cmd.exception, TimeoutExpired))
+        assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
