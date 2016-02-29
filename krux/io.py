@@ -24,6 +24,7 @@ Usage::
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+import signal
 
 #########################
 # Third Party Libraries #
@@ -65,7 +66,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = [], shell = None, timeout = None):
+    def run(self, command, filters = [], shell = None, timeout = None, timeout_terminate_signal=signal.SIGTERM):
         log     = self.___logger
         stats   = self.___stats
 
@@ -91,15 +92,20 @@ class IORunCmd(object):
 
         try:
             process = subprocess32.Popen(
-                            command,
-                            stderr = subprocess32.PIPE,
-                            stdout = subprocess32.PIPE,
-                            shell = shell
-                         )
+                command,
+                stderr = subprocess32.PIPE,
+                stdout = subprocess32.PIPE,
+                shell = shell
+            )
 
             # Note that using communicate() buffers all output in memory and can
             # hang if the buffer is filled.
-            stdout, stderr = process.communicate(timeout = timeout)
+            try:
+                stdout, stderr = process.communicate(timeout = timeout)
+            except subprocess32.TimeoutExpired:
+                process.send_signal(timeout_terminate_signal)
+                stdout, stderr = process.communicate()
+                raise
 
             ### set the bookkeeping variables.
             ### the exit code is set on the process; communicate doesn't provide
