@@ -13,12 +13,15 @@ from unittest import TestCase
 
 import re
 import sys
+import time
+import signal
 
 #########################
 # Third Party Libraries #
 #########################
 from nose.tools import assert_equal, assert_true, assert_false, raises
-from subprocess32 import TimeoutExpired
+from mock import MagicMock, patch, DEFAULT, call
+from subprocess32 import TimeoutExpired, PIPE, Popen
 
 ######################
 # Internal Libraries #
@@ -28,6 +31,10 @@ import krux.io
 
 
 class TestApplication(TestCase):
+    TIMEOUT_COMMAND = 'sleep 5'
+    TIMEOUT_SECOND = 2
+    TIMEOUT_SIGNAL = signal.SIGINT
+
     def setUp(self):
         """
         Common test initialization
@@ -108,9 +115,27 @@ class TestApplication(TestCase):
         assert_false(len(cmd.stderr))
 
     def test_timeout(self):
-        cmd = self.io.run_cmd( command = 'sleep 30', timeout = 2 )
+        """
+        run_cmd re-throws a TimeoutExpired error from subprocess upon timing out
+        """
+        mock_process = MagicMock(
+            communicate=MagicMock(
+                # side_effect=lambda timeout: DEFAULT if timeout is None else TimeoutExpired
+                side_effect=TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND),
+                return_value=('', '')
+            ),
+        )
+        mock_popen = MagicMock(
+            return_value=mock_process
+        )
 
-        assert_false(cmd.ok)
-        assert_true(cmd.exception)
-        assert_true(isinstance(cmd.exception, TimeoutExpired))
-        assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
+        with patch('krux.io.subprocess32.Popen', mock_popen):
+            cmd = self.io.run_cmd( command = self.TIMEOUT_COMMAND, timeout = self.TIMEOUT_SECOND, timeout_terminate_signal = self.TIMEOUT_COMMAND )
+
+            assert_false(cmd.ok)
+            assert_true(cmd.exception)
+            assert_true(isinstance(cmd.exception, TimeoutExpired))
+            assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
+
+        mock_process.communicate.assert_has_calls( [ call( timeout = self.TIMEOUT_SECOND ), call() ] )
+        mock_process.send_signal.assert_called_once_with( self.TIMEOUT_COMMAND )
