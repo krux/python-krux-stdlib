@@ -10,6 +10,7 @@ Unit tests for the krux.io module.
 ######################
 from __future__ import absolute_import
 from unittest import TestCase
+from logging import Logger
 
 import re
 import sys
@@ -118,10 +119,17 @@ class TestApplication(TestCase):
         """
         run_cmd re-throws a TimeoutExpired error from subprocess upon timing out
         """
+        # Mocking the logger to check for calls later
+        mock_logger = MagicMock(
+            spec=Logger,
+            autospec=True,
+        )
 
+        # Mocking the subprocess module
+        timeout_error = TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND)
         mock_process = MagicMock(
             communicate=MagicMock(
-                side_effect=[TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND), ('', '')]
+                side_effect=[timeout_error, ('', '')]
             ),
         )
         mock_popen = MagicMock(
@@ -129,16 +137,22 @@ class TestApplication(TestCase):
         )
 
         with patch('krux.io.subprocess32.Popen', mock_popen):
+            self.io = krux.io.IO(logger=mock_logger)
             cmd = self.io.run_cmd(
                 command = self.TIMEOUT_COMMAND,
                 timeout = self.TIMEOUT_SECOND,
                 timeout_terminate_signal = self.TIMEOUT_COMMAND
             )
 
+            # Check to make sure the command has failed with expected exception
             assert_false(cmd.ok)
             assert_true(cmd.exception)
             assert_true(isinstance(cmd.exception, TimeoutExpired))
             assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
 
+        # Check to make sure error handling is done correctly and process is sent the given signal
         mock_process.communicate.assert_has_calls( [ call( timeout = self.TIMEOUT_SECOND ), call() ] )
         mock_process.send_signal.assert_called_once_with( self.TIMEOUT_COMMAND )
+
+        # Check to make sure the error is logged
+        mock_logger.critical.assert_called_once_with('Command failed: %s', timeout_error)
