@@ -90,6 +90,12 @@ class IORunCmd(object):
         if shell is None:
             shell = isinstance(command, basestring)
 
+        # GOTCHA: If the process is created using shell, upon timeout, the shell process will be
+        # terminated but not the actual command. Use 'exec' shell keyword so that the actual command's process
+        # is terminated and prevent a false timeout.
+        if shell is True and timeout is not None:
+            command = 'exec ' + command
+
         try:
             process = subprocess32.Popen(
                 command,

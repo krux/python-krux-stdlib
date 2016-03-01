@@ -22,7 +22,7 @@ import signal
 #########################
 from nose.tools import assert_equal, assert_true, assert_false, raises
 from mock import MagicMock, patch, call
-from subprocess32 import TimeoutExpired, PIPE, Popen
+import subprocess32
 
 ######################
 # Internal Libraries #
@@ -126,7 +126,7 @@ class TestApplication(TestCase):
         )
 
         # Mocking the subprocess module
-        timeout_error = TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND)
+        timeout_error = subprocess32.TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND)
         mock_process = MagicMock(
             communicate=MagicMock(
                 side_effect=[timeout_error, ('', '')]
@@ -147,7 +147,7 @@ class TestApplication(TestCase):
             # Check to make sure the command has failed with expected exception
             assert_false(cmd.ok)
             assert_true(cmd.exception)
-            assert_true(isinstance(cmd.exception, TimeoutExpired))
+            assert_true(isinstance(cmd.exception, subprocess32.TimeoutExpired))
             assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
 
         # Check to make sure error handling is done correctly and process is sent the given signal
@@ -156,3 +156,31 @@ class TestApplication(TestCase):
 
         # Check to make sure the error is logged
         mock_logger.critical.assert_called_once_with('Command failed: %s', timeout_error)
+
+    def test_exec(self):
+        """
+        run_cmd adds 'exec ' prefix when shell and timeout parameters are used together
+        """
+        # Mocking the subprocess module
+        mock_process = MagicMock(
+            communicate=MagicMock(
+                return_value=('', '')
+            ),
+        )
+        mock_popen = MagicMock(
+            return_value=mock_process,
+        )
+
+        with patch('krux.io.subprocess32.Popen', mock_popen):
+            cmd = self.io.run_cmd(
+                command = self.TIMEOUT_COMMAND,
+                timeout = self.TIMEOUT_SECOND,
+            )
+
+        # Check to make sure the 'exec' prefix is added properly
+        mock_popen.assert_called_once_with(
+            'exec ' + self.TIMEOUT_COMMAND,
+            stderr = subprocess32.PIPE,
+            stdout = subprocess32.PIPE,
+            shell = True
+        )
