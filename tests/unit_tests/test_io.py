@@ -10,15 +10,19 @@ Unit tests for the krux.io module.
 ######################
 from __future__ import absolute_import
 from unittest import TestCase
+from logging import Logger
 
 import re
 import sys
+import time
+import signal
 
 #########################
 # Third Party Libraries #
 #########################
 from nose.tools import assert_equal, assert_true, assert_false, raises
-from subprocess32 import TimeoutExpired
+from mock import MagicMock, patch, call
+import subprocess32
 
 ######################
 # Internal Libraries #
@@ -28,6 +32,10 @@ import krux.io
 
 
 class TestApplication(TestCase):
+    TIMEOUT_COMMAND = 'sleep 5'
+    TIMEOUT_SECOND = 2
+    TIMEOUT_SIGNAL = signal.SIGINT
+
     def setUp(self):
         """
         Common test initialization
@@ -108,9 +116,71 @@ class TestApplication(TestCase):
         assert_false(len(cmd.stderr))
 
     def test_timeout(self):
-        cmd = self.io.run_cmd( command = 'sleep 30', timeout = 2 )
+        """
+        run_cmd re-throws a TimeoutExpired error from subprocess upon timing out
+        """
+        # Mocking the logger to check for calls later
+        mock_logger = MagicMock(
+            spec=Logger,
+            autospec=True,
+        )
 
-        assert_false(cmd.ok)
-        assert_true(cmd.exception)
-        assert_true(isinstance(cmd.exception, TimeoutExpired))
-        assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
+        # Mocking the subprocess module
+        timeout_error = subprocess32.TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND)
+        mock_process = MagicMock(
+            communicate=MagicMock(
+                side_effect=[timeout_error, ('', '')]
+            ),
+        )
+        mock_popen = MagicMock(
+            return_value=mock_process
+        )
+
+        with patch('krux.io.subprocess32.Popen', mock_popen):
+            self.io = krux.io.IO(logger=mock_logger)
+            cmd = self.io.run_cmd(
+                command = self.TIMEOUT_COMMAND,
+                timeout = self.TIMEOUT_SECOND,
+                timeout_terminate_signal = self.TIMEOUT_COMMAND
+            )
+
+            # Check to make sure the command has failed with expected exception
+            assert_false(cmd.ok)
+            assert_true(cmd.exception)
+            assert_true(isinstance(cmd.exception, subprocess32.TimeoutExpired))
+            assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
+
+        # Check to make sure error handling is done correctly and process is sent the given signal
+        mock_process.communicate.assert_has_calls( [ call( timeout = self.TIMEOUT_SECOND ), call() ] )
+        mock_process.send_signal.assert_called_once_with( self.TIMEOUT_COMMAND )
+
+        # Check to make sure the error is logged
+        mock_logger.critical.assert_called_once_with('Command failed: %s', timeout_error)
+
+    def test_exec(self):
+        """
+        run_cmd adds 'exec ' prefix when shell and timeout parameters are used together
+        """
+        # Mocking the subprocess module
+        mock_process = MagicMock(
+            communicate=MagicMock(
+                return_value=('', '')
+            ),
+        )
+        mock_popen = MagicMock(
+            return_value=mock_process,
+        )
+
+        with patch('krux.io.subprocess32.Popen', mock_popen):
+            cmd = self.io.run_cmd(
+                command = self.TIMEOUT_COMMAND,
+                timeout = self.TIMEOUT_SECOND,
+            )
+
+        # Check to make sure the 'exec' prefix is added properly
+        mock_popen.assert_called_once_with(
+            'exec ' + self.TIMEOUT_COMMAND,
+            stderr = subprocess32.PIPE,
+            stdout = subprocess32.PIPE,
+            shell = True
+        )
