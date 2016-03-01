@@ -20,7 +20,7 @@ import signal
 # Third Party Libraries #
 #########################
 from nose.tools import assert_equal, assert_true, assert_false, raises
-from mock import MagicMock, patch, DEFAULT, call
+from mock import MagicMock, patch, call
 from subprocess32 import TimeoutExpired, PIPE, Popen
 
 ######################
@@ -118,11 +118,10 @@ class TestApplication(TestCase):
         """
         run_cmd re-throws a TimeoutExpired error from subprocess upon timing out
         """
+
         mock_process = MagicMock(
             communicate=MagicMock(
-                # side_effect=lambda timeout: DEFAULT if timeout is None else TimeoutExpired
-                side_effect=TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND),
-                return_value=('', '')
+                side_effect=[TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND), ('', '')]
             ),
         )
         mock_popen = MagicMock(
@@ -130,7 +129,11 @@ class TestApplication(TestCase):
         )
 
         with patch('krux.io.subprocess32.Popen', mock_popen):
-            cmd = self.io.run_cmd( command = self.TIMEOUT_COMMAND, timeout = self.TIMEOUT_SECOND, timeout_terminate_signal = self.TIMEOUT_COMMAND )
+            cmd = self.io.run_cmd(
+                command = self.TIMEOUT_COMMAND,
+                timeout = self.TIMEOUT_SECOND,
+                timeout_terminate_signal = self.TIMEOUT_COMMAND
+            )
 
             assert_false(cmd.ok)
             assert_true(cmd.exception)
