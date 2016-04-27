@@ -118,7 +118,9 @@ class Application(object):
         self.args = self.parser.parse_args()
 
         # the cli facility should over-ride the passed-in syslog facility
-        if self.args.syslog_facility is not None:
+        if not self.args.no_syslog_facility:
+            syslog_facility = None
+        elif self.args.syslog_facility is not None:
             syslog_facility = self.args.syslog_facility
 
         # same idea here, the cli value should over-ride the passed-in value
@@ -334,6 +336,13 @@ def add_logging_args(parser, stdout_default=True):
         default=None,
         help='Full-qualified path to the log file '
         '(default: %(default)s).'
+    )
+
+    group.add_argument(
+        '--no-syslog-facility',
+        action='store_true',
+        default=False,
+        help='disable syslog facility',
     )
     group.add_argument(
         '--syslog-facility',
