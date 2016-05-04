@@ -118,8 +118,7 @@ class Application(object):
         self.args = self.parser.parse_args()
 
         # the cli facility should over-ride the passed-in syslog facility
-        if self.args.syslog_facility is not None:
-            syslog_facility = self.args.syslog_facility
+        syslog_facility = self.args.syslog_facility
 
         # same idea here, the cli value should over-ride the passed-in value
         if self.args.log_to_stdout != log_to_stdout:

@@ -142,6 +142,22 @@ class TestApplication(TestCase):
             log_to_stdout=True,
         )
 
+    @patch('krux.cli.krux.logging.get_logger')
+    def test_no_syslog_facility(self, mock_logger):
+        app = cli.Application(
+            name=self.__class__.__name__,
+            parser=self._get_parser(args=['--no-syslog-facility'])
+        )
+
+        print app.args
+
+        mock_logger.assert_called_once_with(
+            self.__class__.__name__,
+            level=DEFAULT_LOG_LEVEL,
+            syslog_facility=None,
+            log_to_stdout=True,
+        )
+
     @patch('krux.cli.partial')
     def test_add_exit_hook(self, mock_partial):
         """
