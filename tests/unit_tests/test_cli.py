@@ -29,6 +29,7 @@ from nose.tools import assert_equal, assert_true
 ######################
 from krux.stats     import DummyStatsClient
 from krux.constants import DEFAULT_LOCK_DIR
+from krux.logging   import DEFAULT_LOG_LEVEL
 
 import krux.cli as cli
 
@@ -123,6 +124,18 @@ class TestApplication(TestCase):
         assert_true(isinstance(self.app.logger, Logger))
         assert_true(isinstance(self.app.stats, DummyStatsClient))
         assert_equal(self.app._exit_hooks, [])
+
+    @patch('krux.cli.krux.logging.get_logger')
+    def test_syslog_facility(self, mock_logger):
+        self.mock_parser.return_value.parse_args.return_value.syslog_facility = 'test-syslog'
+        app = cli.Application(self.__class__.__name__)
+
+        mock_logger.assert_called_once_with(
+            self.__class__.__name__,
+            level=DEFAULT_LOG_LEVEL,
+            syslog_facility='test-syslog',
+            log_to_stdout=True,
+        )
 
     @patch('krux.cli.partial')
     def test_add_exit_hook(self, mock_partial):
