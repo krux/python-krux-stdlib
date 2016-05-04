@@ -149,8 +149,6 @@ class TestApplication(TestCase):
             parser=self._get_parser(args=['--no-syslog-facility'])
         )
 
-        print app.args
-
         mock_logger.assert_called_once_with(
             self.__class__.__name__,
             level=DEFAULT_LOG_LEVEL,

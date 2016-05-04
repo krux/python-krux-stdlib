@@ -339,6 +339,7 @@ def add_logging_args(parser, stdout_default=True):
         '--no-syslog-facility',
         dest='syslog_facility',
         action='store_const',
+        default=DEFAULT_LOG_FACILITY,
         const=None,
         help='disable syslog facility',
     )
