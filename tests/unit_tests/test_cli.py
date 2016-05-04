@@ -88,32 +88,35 @@ def test_get_script_name():
     assert_equal(name, 'nosetests')
 
 class TestApplication(TestCase):
+
+    def _get_parser(self, args=[]):
+        """
+        Returns a mock parser with the given arguments set
+
+        :param args: :py:class:`list` List of str CLI arguments (i.e. ['--log-level', 'debug', '--log-file', 'foo.log'])
+        """
+
+        # Get the argparse namespace object with the given args
+        parser = cli.get_parser()
+        namespace = parser.parse_args(args)
+
+        # Return a mock ArgumentParser object as a parser
+        # It has a function called 'parse_args' with the return value is the namespace variable defined above
+        return MagicMock(
+            spec=ArgumentParser,
+            parse_args=MagicMock(return_value=namespace)
+        )
+
     def setUp(self):
         """
         Common test initialization
         """
         super(TestApplication, self).setUp()
 
-        # Use all defaults for the CLI args.
-        defaults = cli.get_parser().parse_args([])
-
-        # Mock the command-line parser so it doesn't attempt to parse the
-        # command line of our test runner.
-        self.parser_patch = patch(
-            'krux.cli.get_parser', spec = ArgumentParser
+        self.app = cli.Application(
+            name=self.__class__.__name__,
+            parser=self._get_parser()
         )
-        self.mock_parser = self.parser_patch.start()
-
-        # Set up the mock parser to behave as if defaults were used.
-        self.mock_parser.return_value.parse_args.return_value = defaults
-
-        self.app = cli.Application(self.__class__.__name__)
-
-    def tearDown(self):
-        """
-        Teardown steps for each Application test.
-        """
-        self.parser_patch.stop()
 
     def test_init(self):
         """
@@ -127,8 +130,10 @@ class TestApplication(TestCase):
 
     @patch('krux.cli.krux.logging.get_logger')
     def test_syslog_facility(self, mock_logger):
-        self.mock_parser.return_value.parse_args.return_value.syslog_facility = 'test-syslog'
-        app = cli.Application(self.__class__.__name__)
+        app = cli.Application(
+            name=self.__class__.__name__,
+            parser=self._get_parser(args=['--syslog-facility', 'test-syslog'])
+        )
 
         mock_logger.assert_called_once_with(
             self.__class__.__name__,
