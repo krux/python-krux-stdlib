@@ -153,6 +153,12 @@ def get_logger(name, syslog_facility=None, log_to_stdout=True, **kwargs):
     # are we logging to stdout/stderr?
     if log_to_stdout:
         setup(**kwargs)
+    else:
+        # GOTCHA: Even without setup() being called, if logging.basicConfig() is called or log level is set in
+        # any of the subclass for krux.cli, the log is printed out to stderr. In order to properly stop this,
+        # disable propagating. This will stop the logs to be propagated to the ancestor logs and get logged into
+        # stderr. Syslog will still work because that is a handler to this logger.
+        logging.getLogger(name).propagate = False
     # are we logging to syslog?
     if syslog_facility is not None:
         syslog_setup(name, syslog_facility, **kwargs)
