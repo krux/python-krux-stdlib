@@ -41,7 +41,7 @@ class AnObject(object):
         pass
 
 
-class TestUtil(unittest.TestCase):
+class HasMethodTest(unittest.TestCase):
     def setUp(self):
         """
         Setup for krux.util tests.
