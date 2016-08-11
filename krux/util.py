@@ -61,6 +61,8 @@ def flatten(lst):
     """
     Flattens a mixture of lists and objects into a one-dimensional list
 
+    https://rosettacode.org/wiki/Flatten_a_list#Generative
+
     :param lst: :py:class:`list` List to flatten
     """
     for x in lst:
