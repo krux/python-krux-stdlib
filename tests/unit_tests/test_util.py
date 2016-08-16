@@ -20,7 +20,7 @@ from nose.tools import assert_false, assert_true
 ######################
 # Internal Libraries #
 ######################
-from krux.util import hasmethod, flatten
+from krux.util import hasmethod
 
 
 class AnObject(object):
@@ -41,7 +41,7 @@ class AnObject(object):
         pass
 
 
-class HasMethodTest(unittest.TestCase):
+class TestUtil(unittest.TestCase):
     def setUp(self):
         """
         Setup for krux.util tests.
@@ -77,17 +77,3 @@ class HasMethodTest(unittest.TestCase):
         hasmethod returns False for an @property method.
         """
         assert_false(hasmethod(self.an_object, 'a_property_method'))
-
-
-class FlattenTest(unittest.TestCase):
-    def test_empty_list(self):
-        """
-        flatten yields an empty list when passed an empty list
-        """
-        self.assertEqual([], list(flatten([])))
-
-    def test_flatten(self):
-        """
-        flatten yields a one-dimensional list when passed a multi-dimensional list of values
-        """
-        self.assertEqual([1, 2, 3, 4, 5, 6, 7, 8], list(flatten([[1], 2, [[3, 4], 5], [[[]]], [[[6]]], 7, 8, []])))
