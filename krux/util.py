@@ -55,3 +55,19 @@ def divide_or_zero(numerator, denominator, default=None):
     if denominator == 0:
         return default
     return numerator / denominator
+
+
+def flatten(lst):
+    """
+    Flattens a mixture of lists and objects into a one-dimensional list
+
+    https://rosettacode.org/wiki/Flatten_a_list#Generative
+
+    :param lst: :py:class:`list` List to flatten
+    """
+    for x in lst:
+        if isinstance(x, list):
+            for x in flatten(x):
+                yield x
+        else:
+            yield x
