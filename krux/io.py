@@ -25,12 +25,19 @@ Usage::
 ######################
 from __future__ import absolute_import
 import signal
+import sys
+import os
+import re
 
 #########################
 # Third Party Libraries #
 #########################
 
-import subprocess32
+if os.name == 'posix' and sys.version_info[0] < 3:
+    # For Python 2.*, use the backported subprocess
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 ######################
 # Internal Libraries #
@@ -97,10 +104,10 @@ class IORunCmd(object):
             command = 'exec ' + command
 
         try:
-            process = subprocess32.Popen(
+            process = subprocess.Popen(
                 command,
-                stderr = subprocess32.PIPE,
-                stdout = subprocess32.PIPE,
+                stderr = subprocess.PIPE,
+                stdout = subprocess.PIPE,
                 shell = shell
             )
 
@@ -108,7 +115,7 @@ class IORunCmd(object):
             # hang if the buffer is filled.
             try:
                 stdout, stderr = process.communicate(timeout = timeout)
-            except subprocess32.TimeoutExpired:
+            except subprocess.TimeoutExpired:
                 process.send_signal(timeout_terminate_signal)
                 stdout, stderr = process.communicate()
                 raise

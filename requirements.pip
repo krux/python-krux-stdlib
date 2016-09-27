@@ -4,36 +4,46 @@
 # Simple templating engine
 pystache==0.5.4
 
-# sphinx (for API documentation)
-Sphinx==1.2b1
-# needed by sphinx
-Jinja2==2.6
-# needed by sphinx
-Pygments==1.6
-docutils==0.10
+# For API documentation
+Sphinx==1.4.6
 
-# stats
-kruxstatsd==0.2.2
-statsd==2.0.3
+# For stats
+kruxstatsd==0.3.0
 
-# Latest tested versions
-argparse==1.2.1
-GitPython==0.3.2.RC1
-simplejson==3.3.0
+# For CLI arguments
+argparse==1.4.0
+
+# For krux.tornado
 tornado==3.0.1
-# for lockfiles in cli
-lockfile==0.9.1
+simplejson==3.8.2
+GitPython==2.0.8
+
+# For lockfiles in CLI
+lockfile==0.12.2
 
 # Python 3's subprocess for newer features
 subprocess32==3.2.7
 
-# Test libraries
-coverage==3.6
-mock==1.0.1
-nose==1.2.1
+# Transitive libraries
+# This is needed so there are no version conflicts when
+# one downstream library does NOT specify the version it wants,
+# and another one does.
 
-## The following requirements were added by pip --freeze:
-async==0.6.1
-fudge==1.0.3
-gitdb==0.5.4
-smmap==0.8.2
+# From Sphinx
+Jinja2==2.8
+MarkupSafe==0.23
+Pygments==2.1.3
+alabaster==0.7.9
+babel==2.3.4
+docutils==0.12
+imagesize==0.7.1
+pytz==2016.6.1
+six==1.10.0
+snowballstemmer==1.2.1
+
+# From kruxstatsd
+statsd==3.2.1
+
+# From GitPython
+gitdb==0.6.4
+smmap==0.9.0

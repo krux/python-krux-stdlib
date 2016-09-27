@@ -2,11 +2,13 @@
 #
 # © 2013-2015 Krux Digital, Inc.
 #
+import sys
+import os
 from setuptools import setup, find_packages
 
 
 # We use the version to construct the DOWNLOAD_URL.
-VERSION = '2.3.0'
+VERSION = '2.4.0'
 
 # URL to the repository on Github.
 REPO_URL = 'https://github.com/krux/python-krux-stdlib'
@@ -15,6 +17,10 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # forget to tag!
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
+REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'tornado', 'simplejson', 'GitPython', 'lockfile']
+if os.name == 'posix' and sys.version_info[0] < 3:
+    # For Python 2.*, install the backported subprocess
+    REQUIREMENTS.append('subprocess32')
 
 setup(
     name='krux-stdlib',
@@ -32,25 +38,7 @@ setup(
     download_url=DOWNLOAD_URL,
     license='License :: OSI Approved :: MIT License',
     packages=find_packages(),
-    install_requires=[
-        'Sphinx',
-        'Jinja2',
-        'Pygments',
-        'docutils',
-        'kruxstatsd',
-        'statsd',
-        'argparse',
-        'GitPython',
-        'simplejson',
-        'tornado',
-        'lockfile',
-        'pygerduty',
-        'async',
-        'fudge',
-        'gitdb',
-        'smmap',
-        'subprocess32',
-    ],
+    install_requires=REQUIREMENTS,
     tests_require=[
         'coverage',
         'mock',

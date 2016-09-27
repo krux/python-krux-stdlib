@@ -136,7 +136,7 @@ class TestApplication(TestCase):
             return_value=mock_process
         )
 
-        with patch('krux.io.subprocess32.Popen', mock_popen):
+        with patch('krux.io.subprocess.Popen', mock_popen):
             self.io = krux.io.IO(logger=mock_logger)
             cmd = self.io.run_cmd(
                 command = self.TIMEOUT_COMMAND,
@@ -171,7 +171,7 @@ class TestApplication(TestCase):
             return_value=mock_process,
         )
 
-        with patch('krux.io.subprocess32.Popen', mock_popen):
+        with patch('krux.io.subprocess.Popen', mock_popen):
             cmd = self.io.run_cmd(
                 command = self.TIMEOUT_COMMAND,
                 timeout = self.TIMEOUT_SECOND,
