@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 
 # We use the version to construct the DOWNLOAD_URL.
-VERSION = '2.3.0'
+VERSION = '2.4.0'
 
 # URL to the repository on Github.
 REPO_URL = 'https://github.com/krux/python-krux-stdlib'
@@ -33,27 +33,19 @@ setup(
     license='License :: OSI Approved :: MIT License',
     packages=find_packages(),
     install_requires=[
-        'Sphinx',
-        'Jinja2',
-        'Pygments',
-        'docutils',
-        'kruxstatsd',
-        'statsd',
-        'argparse',
-        'GitPython',
-        'simplejson',
-        'tornado',
-        'lockfile',
-        'pygerduty',
-        'async',
-        'fudge',
-        'gitdb',
-        'smmap',
-        'subprocess32',
+        'pystache==0.5.4',
+        'Sphinx==1.4.6',
+        'kruxstatsd==0.3.0',
+        'argparse==1.4.0',
+        'tornado==3.0.1',
+        'simplejson==3.8.2',
+        'GitPython==2.0.8',
+        'lockfile==0.12.2',
+        'subprocess32==3.2.7',
     ],
     tests_require=[
-        'coverage',
-        'mock',
-        'nose',
+        'coverage==4.2',
+        'mock==1.1.2',
+        'nose==1.3.7',
     ],
 )
