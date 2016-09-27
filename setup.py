@@ -38,17 +38,7 @@ setup(
     download_url=DOWNLOAD_URL,
     license='License :: OSI Approved :: MIT License',
     packages=find_packages(),
-    install_requires=[
-        'pystache',
-        'Sphinx',
-        'kruxstatsd',
-        'argparse',
-        'tornado',
-        'simplejson',
-        'GitPython',
-        'lockfile',
-        'subprocess32',
-    ],
+    install_requires=REQUIREMENTS,
     tests_require=[
         'coverage',
         'mock',
