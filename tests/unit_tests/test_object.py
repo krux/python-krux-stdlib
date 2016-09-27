@@ -24,6 +24,10 @@ from krux.object import Object
 
 
 class TestObject(Object):
+    """
+    Just needed a subclass of Object for unit test.
+    Nothing to see here. Move along.
+    """
     pass
 
 
@@ -62,6 +66,9 @@ class ObjectTest(unittest.TestCase):
         self.assertEqual(mock_stats.return_value, app._stats)
 
     def test_inheritance(self):
+        """
+        The default value of _name property for a subclass is handled correctly
+        """
         app = TestObject()
 
         self.assertEqual(TestObject.__name__, app._name)
