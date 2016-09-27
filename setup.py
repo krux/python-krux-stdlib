@@ -2,6 +2,8 @@
 #
 # © 2013-2015 Krux Digital, Inc.
 #
+import sys
+import os
 from setuptools import setup, find_packages
 
 
@@ -15,6 +17,10 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # forget to tag!
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
+REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'tornado', 'simplejson', 'GitPython', 'lockfile']
+if os.name == 'posix' and sys.version_info[0] < 3:
+    # For Python 2.*, install the backported subprocess
+    REQUIREMENTS.append('subprocess32')
 
 setup(
     name='krux-stdlib',
