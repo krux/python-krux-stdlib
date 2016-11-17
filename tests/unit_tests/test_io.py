@@ -13,6 +13,8 @@ from unittest import TestCase
 from logging import Logger
 
 import re
+import shutil
+import tempfile
 import signal
 
 #########################
@@ -33,6 +35,8 @@ class TestApplication(TestCase):
     TIMEOUT_COMMAND = 'sleep 5'
     TIMEOUT_SECOND = 2
     TIMEOUT_SIGNAL = signal.SIGINT
+    SHELL_ESCAPE_BACKTICK = '`touch {0}/p0wn`'
+    SHELL_ESCAPE_PARENS = '$(touch {0}/p0wn)'
 
     def setUp(self):
         """
@@ -41,6 +45,13 @@ class TestApplication(TestCase):
         super(TestApplication, self).setUp()
 
         self.io = krux.io.IO()
+
+        # Create a temporary directory; needed for the shell escape tests
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        # Remove the directory after the test
+        shutil.rmtree(self.temp_dir)
 
     def test_init(self):
         """
@@ -66,7 +77,6 @@ class TestApplication(TestCase):
 
         assert_true(cmd.ok)
         assert_equal(cmd.returncode, 0)
-
 
     def test_cmd_false(self):
         """ Test return code from failing command """
@@ -182,3 +192,34 @@ class TestApplication(TestCase):
             stdout = subprocess32.PIPE,
             shell = True
         )
+
+    def test_shell_escapes_backtick(self):
+        """
+        Test that we refuse to run a command with backticks in it.
+        """
+        cmd = self.io.run_cmd(
+            command=['ls', self.SHELL_ESCAPE_BACKTICK],
+        )
+
+        assert_false(cmd.ok)
+
+    def test_shell_escapes_parens(self):
+        """
+        Test that we refuse to run a command with a $() subcommand in it.
+        """
+        cmd = self.io.run_cmd(
+            command=['ls', self.SHELL_ESCAPE_PARENS],
+        )
+
+        assert_false(cmd.ok)
+
+    def test_shell_escape_no_lint(self):
+        """
+        Test that we can over-ride linting and run a command that has esacpes in it.
+        """
+        cmd = self.io.run_cmd(
+            command=' '.join(['ls', self.SHELL_ESCAPE_BACKTICK.format(self.temp_dir)]),
+            lint_command=False,
+        )
+
+        assert_true(cmd.ok)
