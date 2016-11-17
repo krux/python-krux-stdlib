@@ -13,8 +13,6 @@ from unittest import TestCase
 from logging import Logger
 
 import re
-import sys
-import time
 import signal
 
 #########################
