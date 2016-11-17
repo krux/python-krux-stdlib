@@ -199,6 +199,10 @@ class TestApplication(TestCase):
         assert_false(cmd.ok)
 
     def test_quoted_file_names(self):
+        """
+        Test that when we pass in a file name that needs to be quoted, that we can
+        use that filename in a command.
+        """
 
         filename = self.QUOTED_FILE_NAME.format(self.temp_dir)
         filehandle = open(filename, 'w')
