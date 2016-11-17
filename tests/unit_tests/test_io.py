@@ -13,6 +13,7 @@ from unittest import TestCase
 from logging import Logger
 
 import re
+import shlex
 import shutil
 import tempfile
 import signal
@@ -35,8 +36,10 @@ class TestApplication(TestCase):
     TIMEOUT_COMMAND = 'sleep 5'
     TIMEOUT_SECOND = 2
     TIMEOUT_SIGNAL = signal.SIGINT
-    SHELL_ESCAPE_BACKTICK = '`touch {0}/p0wn`'
-    SHELL_ESCAPE_PARENS = '$(touch {0}/p0wn)'
+    SHELL_INJECTION_BACKTICK = '`touch {0}/p0wn`'
+    SHELL_INJECTION_PARENS = '$(touch {0}/p0wn)'
+    SHELL_INJECTION_SEMICOLON = 'true; touch {0}/p0wn'
+    QUOTED_FILE_NAME = '{0}/file name with spaces'
 
     def setUp(self):
         """
@@ -165,61 +168,45 @@ class TestApplication(TestCase):
         # Check to make sure the error is logged
         mock_logger.critical.assert_called_once_with('Command failed: %s', timeout_error)
 
-    def test_exec(self):
+    def test_shell_injection_backtick(self):
         """
-        run_cmd adds 'exec ' prefix when shell and timeout parameters are used together
-        """
-        # Mocking the subprocess module
-        mock_process = MagicMock(
-            communicate=MagicMock(
-                return_value=('', '')
-            ),
-        )
-        mock_popen = MagicMock(
-            return_value=mock_process,
-        )
-
-        with patch('krux.io.subprocess.Popen', mock_popen):
-            cmd = self.io.run_cmd(
-                command = self.TIMEOUT_COMMAND,
-                timeout = self.TIMEOUT_SECOND,
-            )
-
-        # Check to make sure the 'exec' prefix is added properly
-        mock_popen.assert_called_once_with(
-            'exec ' + self.TIMEOUT_COMMAND,
-            stderr = subprocess32.PIPE,
-            stdout = subprocess32.PIPE,
-            shell = True
-        )
-
-    def test_shell_escapes_backtick(self):
-        """
-        Test that we refuse to run a command with backticks in it.
+        Test that a command with backticks in it fails to run.
         """
         cmd = self.io.run_cmd(
-            command=['ls', self.SHELL_ESCAPE_BACKTICK],
+            command=['ls', self.SHELL_INJECTION_BACKTICK],
         )
 
         assert_false(cmd.ok)
 
-    def test_shell_escapes_parens(self):
+    def test_shell_injection_parens(self):
         """
-        Test that we refuse to run a command with a $() subcommand in it.
+        Test that a command with a $() subcommand in it fails to run.
         """
         cmd = self.io.run_cmd(
-            command=['ls', self.SHELL_ESCAPE_PARENS],
+            command=['ls', self.SHELL_INJECTION_PARENS],
         )
 
         assert_false(cmd.ok)
 
-    def test_shell_escape_no_lint(self):
+    def test_shell_injection_semicolon(self):
         """
-        Test that we can over-ride linting and run a command that has esacpes in it.
+        Test that a command with a $() subcommand in it fails to run.
         """
         cmd = self.io.run_cmd(
-            command=' '.join(['ls', self.SHELL_ESCAPE_BACKTICK.format(self.temp_dir)]),
-            lint_command=False,
+            command=['ls', self.SHELL_INJECTION_SEMICOLON],
+        )
+
+        assert_false(cmd.ok)
+
+    def test_quoted_file_names(self):
+
+        filename = self.QUOTED_FILE_NAME.format(self.temp_dir)
+        filehandle = open(filename, 'w')
+        filehandle.write("hello world")
+        filehandle.close()
+
+        cmd = self.io.run_cmd(
+            command='rm -f {0}'.format(filename)
         )
 
         assert_true(cmd.ok)
