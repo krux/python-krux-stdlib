@@ -190,7 +190,7 @@ class TestApplication(TestCase):
 
     def test_shell_injection_semicolon(self):
         """
-        Test that a command with a $() subcommand in it fails to run.
+        Test that a command with a ; in it fails to run.
         """
         cmd = self.io.run_cmd(
             command=['ls', self.SHELL_INJECTION_SEMICOLON],
