@@ -24,6 +24,7 @@ Usage::
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+import shlex
 import signal
 import sys
 import os
@@ -73,7 +74,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = [], shell = None, timeout = None, timeout_terminate_signal=signal.SIGTERM):
+    def run(self, command, filters = [], timeout = None, timeout_terminate_signal=signal.SIGTERM):
         log     = self.___logger
         stats   = self.___stats
 
@@ -90,25 +91,17 @@ class IORunCmd(object):
 
         log.debug('Applying output filters: %s' % [r.pattern for r in filters])
 
-        # Use shell param if set, otherwise use shell if we were passed a string
-        # so that the shell can parse it and support quoted or escaped arguments
-        # properly, such as:
+        # if the command is a string, split it using shlex; which correctly handles quoted args like:
         #  cat "/var/log/foo bar.log" /var/log/baz\ .log
-        if shell is None:
-            shell = isinstance(command, basestring)
-
-        # GOTCHA: If the process is created using shell, upon timeout, the shell process will be
-        # terminated but not the actual command. Use 'exec' shell keyword so that the actual command's process
-        # is terminated and prevent a false timeout.
-        if shell is True and timeout is not None:
-            command = 'exec ' + command
+        if isinstance(command, basestring):
+            command = shlex.split(command)
 
         try:
             process = subprocess.Popen(
                 command,
                 stderr = subprocess.PIPE,
                 stdout = subprocess.PIPE,
-                shell = shell
+                shell = False
             )
 
             # Note that using communicate() buffers all output in memory and can

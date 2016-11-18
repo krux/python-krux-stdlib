@@ -13,8 +13,9 @@ from unittest import TestCase
 from logging import Logger
 
 import re
-import sys
-import time
+import shlex
+import shutil
+import tempfile
 import signal
 
 #########################
@@ -35,6 +36,10 @@ class TestApplication(TestCase):
     TIMEOUT_COMMAND = 'sleep 5'
     TIMEOUT_SECOND = 2
     TIMEOUT_SIGNAL = signal.SIGINT
+    SHELL_INJECTION_BACKTICK = '`touch {0}/p0wn`'
+    SHELL_INJECTION_PARENS = '$(touch {0}/p0wn)'
+    SHELL_INJECTION_SEMICOLON = 'true; touch {0}/p0wn'
+    QUOTED_FILE_NAME = '{0}/file name with spaces'
 
     def setUp(self):
         """
@@ -43,6 +48,13 @@ class TestApplication(TestCase):
         super(TestApplication, self).setUp()
 
         self.io = krux.io.IO()
+
+        # Create a temporary directory; needed for the shell escape tests
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        # Remove the directory after the test
+        shutil.rmtree(self.temp_dir)
 
     def test_init(self):
         """
@@ -68,7 +80,6 @@ class TestApplication(TestCase):
 
         assert_true(cmd.ok)
         assert_equal(cmd.returncode, 0)
-
 
     def test_cmd_false(self):
         """ Test return code from failing command """
@@ -157,30 +168,49 @@ class TestApplication(TestCase):
         # Check to make sure the error is logged
         mock_logger.critical.assert_called_once_with('Command failed: %s', timeout_error)
 
-    def test_exec(self):
+    def test_shell_injection_backtick(self):
         """
-        run_cmd adds 'exec ' prefix when shell and timeout parameters are used together
+        Test that a command with backticks in it fails to run.
         """
-        # Mocking the subprocess module
-        mock_process = MagicMock(
-            communicate=MagicMock(
-                return_value=('', '')
-            ),
-        )
-        mock_popen = MagicMock(
-            return_value=mock_process,
+        cmd = self.io.run_cmd(
+            command=['ls', self.SHELL_INJECTION_BACKTICK],
         )
 
-        with patch('krux.io.subprocess.Popen', mock_popen):
-            cmd = self.io.run_cmd(
-                command = self.TIMEOUT_COMMAND,
-                timeout = self.TIMEOUT_SECOND,
-            )
+        assert_false(cmd.ok)
 
-        # Check to make sure the 'exec' prefix is added properly
-        mock_popen.assert_called_once_with(
-            'exec ' + self.TIMEOUT_COMMAND,
-            stderr = subprocess32.PIPE,
-            stdout = subprocess32.PIPE,
-            shell = True
+    def test_shell_injection_parens(self):
+        """
+        Test that a command with a $() subcommand in it fails to run.
+        """
+        cmd = self.io.run_cmd(
+            command=['ls', self.SHELL_INJECTION_PARENS],
         )
+
+        assert_false(cmd.ok)
+
+    def test_shell_injection_semicolon(self):
+        """
+        Test that a command with a ; in it fails to run.
+        """
+        cmd = self.io.run_cmd(
+            command=['ls', self.SHELL_INJECTION_SEMICOLON],
+        )
+
+        assert_false(cmd.ok)
+
+    def test_quoted_file_names(self):
+        """
+        Test that when we pass in a file name that needs to be quoted, that we can
+        use that filename in a command.
+        """
+
+        filename = self.QUOTED_FILE_NAME.format(self.temp_dir)
+        filehandle = open(filename, 'w')
+        filehandle.write("hello world")
+        filehandle.close()
+
+        cmd = self.io.run_cmd(
+            command='rm -f {0}'.format(filename)
+        )
+
+        assert_true(cmd.ok)
