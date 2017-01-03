@@ -124,9 +124,6 @@ class Application(object):
         ### get more arguments, if needed
         self.add_cli_arguments(self.parser)
 
-        ### Handle --version argument
-        self._version = None
-
         ### and parse them
         self.args = self.parser.parse_args()
 
