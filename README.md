@@ -72,7 +72,7 @@ to be based off of 0.8.x. That markes the beginning of the 2.x series.
     in the `doc` subdirectory. Then open `doc/github/html/index.html`
     in your favorite browser.
 
-7.  To cut a release, update the VERSION in `setup.py`, merge to the
+7.  To cut a release, update the VERSION in `krux/__init__.py`, merge to the
     `release` branch, and push to GitHub. Jenkins will build and
     upload the new version to the Krux python repository, as well as
     tagging the release in git and updating the documentation.

@@ -5,16 +5,15 @@
 import sys
 import os
 from setuptools import setup, find_packages
+from krux import VERSION
 
-
-# We use the version to construct the DOWNLOAD_URL.
-VERSION = '2.4.1'
 
 # URL to the repository on Github.
 REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 
 # Github will generate a tarball as long as you tag your releases, so don't
 # forget to tag!
+# We use the version to construct the DOWNLOAD_URL.
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
 REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'tornado', 'simplejson', 'GitPython', 'lockfile']

@@ -64,7 +64,6 @@ from krux.constants import (
     DEFAULT_LOCK_DIR,
     DEFAULT_LOCK_TIMEOUT,
 )
-
 import krux.io
 import krux.stats
 import krux.logging
@@ -84,12 +83,22 @@ class CriticalApplicationError(StandardError):
     pass
 
 class Application(object):
+    _VERSIONS = {}
+
     """
     Krux base class for CLI applications
 
     :argument name: name of your CLI application
     """
-    def __init__(self, name, parser=None, logger=None, lockfile=False, syslog_facility=DEFAULT_LOG_FACILITY, log_to_stdout=True):
+    def __init__(
+        self,
+        name,
+        parser=None,
+        logger=None,
+        lockfile=False,
+        syslog_facility=DEFAULT_LOG_FACILITY,
+        log_to_stdout=True,
+    ):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
         logging.
@@ -102,6 +111,7 @@ class Application(object):
         """
 
         ### note our name
+
         self.name = name
 
         ### get a CLI parser
@@ -201,7 +211,16 @@ class Application(object):
         Any additional CLI arguments that (super) classes might want
         to add. This method is overridable.
         """
-        pass
+        version = self._VERSIONS.get(self.name)
+
+        if version is not None:
+            group = get_group(self.parser, 'version')
+
+            group.add_argument(
+                '--version',
+                action='version',
+                version=' '.join([self.name, version]),
+            )
 
     def add_exit_hook(self, hook, *args, **kwargs):
         """
