@@ -83,6 +83,8 @@ class CriticalApplicationError(StandardError):
     pass
 
 class Application(object):
+    _VERSIONS = {}
+
     """
     Krux base class for CLI applications
 
@@ -96,7 +98,6 @@ class Application(object):
         lockfile=False,
         syslog_facility=DEFAULT_LOG_FACILITY,
         log_to_stdout=True,
-        version=None,
     ):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
@@ -123,8 +124,8 @@ class Application(object):
         ### get more arguments, if needed
         self.add_cli_arguments(self.parser)
 
-        if version is not None:
-            self._add_version_argument(self.parser, version)
+        ### Handle --version argument
+        self._version = None
 
         ### and parse them
         self.args = self.parser.parse_args()
@@ -208,21 +209,21 @@ class Application(object):
         ### release the hook when we're done
         self.add_exit_hook( ___release_lockfile, self )
 
-    def _add_version_argument(self, parser, version):
-        group = get_group(parser, 'version')
-
-        group.add_argument(
-            '--version',
-            action='version',
-            version='%(prog)s ' + version,
-        )
-
     def add_cli_arguments(self, parser):
         """
         Any additional CLI arguments that (super) classes might want
         to add. This method is overridable.
         """
-        pass
+        version = self._VERSIONS.get(self.name)
+
+        if version is not None:
+            group = get_group(self.parser, 'version')
+
+            group.add_argument(
+                '--version',
+                action='version',
+                version=' '.join([self.name, version]),
+            )
 
     def add_exit_hook(self, hook, *args, **kwargs):
         """
