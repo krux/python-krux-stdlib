@@ -128,6 +128,38 @@ class TestApplication(TestCase):
         assert_true(isinstance(self.app.stats, DummyStatsClient))
         assert_equal(self.app._exit_hooks, [])
 
+    @patch('krux.cli.get_group')
+    def test_add_cli_arguments_without_version(self, mock_get_group):
+        """
+        krux.cli.Application correctly does not create --version arguments when version is not set
+        """
+        self.app._VERSIONS = {}
+
+        self.app.add_cli_arguments(None)
+
+        self.assertFalse(mock_get_group.called)
+
+    @patch('krux.cli.get_group')
+    def test_add_cli_arguments_with_version(self, mock_get_group):
+        """
+        krux.cli.Application correctly create --version arguments when version is set
+        """
+        self.app.name = 'Test Application'
+        version = '1.2.3'
+        self.app._VERSIONS = {
+            self.app.name: version,
+        }
+
+        self.app.add_cli_arguments(None)
+
+        mock_get_group.assert_called_once_with(self.app.parser, 'version')
+        mock_get_group.return_value.add_argument.assert_called_once_with(
+            '--version',
+            action='version',
+            version=' '.join([self.app.name, version]),
+        )
+
+
     @patch('krux.cli.krux.logging.get_logger')
     def test_syslog_facility(self, mock_logger):
         app = cli.Application(
