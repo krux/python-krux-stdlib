@@ -8,7 +8,7 @@ pystache==0.5.4
 Sphinx==1.4.6
 
 # For stats
-kruxstatsd==0.3.0
+kruxstatsd==0.3.1
 
 # For CLI arguments
 argparse==1.4.0
