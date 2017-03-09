@@ -84,6 +84,7 @@ class CriticalApplicationError(StandardError):
 
 class Application(object):
     _VERSIONS = {}
+    _WARNING_LOGGER_NAME = 'py.warnings'
 
     """
     Krux base class for CLI applications
@@ -157,6 +158,10 @@ class Application(object):
 
         if lockfile:
             self.acquire_lock(lockfile)
+
+        # Many libraries uses warning module to send warnings to stderr. Let's capture them in our
+        # logging so we can control them and save them.
+        logging.captureWarnings(True)
 
     def _init_logging(self, logger, syslog_facility, log_to_stdout):
         self.logger = logger or krux.logging.get_logger(
