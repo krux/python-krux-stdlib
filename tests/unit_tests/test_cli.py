@@ -287,6 +287,18 @@ class TestApplication(TestCase):
 
         mock_hook.assert_called_once_with()
 
+    @patch('krux.cli.logging')
+    def test_capturewarning(self, mock_logging):
+        """
+        krux.cli.Application captures all warnings and put them in the logs
+        """
+        app = cli.Application(
+            name=self.__class__.__name__,
+            parser=self._get_parser()
+        )
+
+        mock_logging.captureWarnings.assert_called_once_with(True)
+
 ###
 ### Test krux.cli.Application
 ###
