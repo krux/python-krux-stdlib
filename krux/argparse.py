@@ -35,7 +35,7 @@ class AppendOverDefault(Action):
     ['1.2.3.4', '5.6.7.8']
     """
     def __call__(self, parser, namespace, values, option_string=None):
-        if namespace.ips == self.default:
-            namespace.ips = [values]
+        if getattr(namespace, self.dest) == self.default:
+            setattr(namespace, self.dest, [values])
         else:
-            namespace.ips.append(values)
+            getattr(namespace, self.dest).append(values)
