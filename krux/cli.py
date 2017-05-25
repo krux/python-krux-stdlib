@@ -176,6 +176,9 @@ class Application(object):
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
 
+    def set_version(self, version):
+        pass
+
     def acquire_lock(self, lockfile=True):
         ### Did you just tell us to use a lock, or did you give us a location?
         _lockfile = (os.path.join(self.args.lock_dir, self.name)
