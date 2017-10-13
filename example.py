@@ -3,7 +3,7 @@
 import krux.cli
 
 
-class ExampleLoggingApp( krux.cli.Application ):
+class ExampleLoggingApp(krux.cli.Application):
     """
     This class gets a few things for free; not least of which:
       * a command-line option parser
@@ -17,7 +17,7 @@ class ExampleLoggingApp( krux.cli.Application ):
         # the default is to print them out to the console; setting a syslog facility
         # means messages will go to syslog with the named facility and called severity;
         # your local syslog config will need to route those messages to a file or remote syslog.
-        super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0', log_to_stdout=False)
+        super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0')
 
     def run(self):
         """
@@ -29,18 +29,21 @@ class ExampleLoggingApp( krux.cli.Application ):
         self.logger.info("this is a info level message")
 
 
-
 def main():
     # instantiate your application class
     app = ExampleLoggingApp()
-    # go ahead and call whatever methods you have defined under your app; .logger is
-    # provided by the krux standard library. calling logger with each available log level
-    # might help you diagnose/tune your local syslog config; you can also over-ride the
-    # class' syslog_facility as cnfigured above with the --syslog-facility argument.
-    app.run()
-    app.logger.warn("this is a warning level message")
-    app.logger.error("this is a error level message")
-    app.logger.critical("this is a critical level message")
+
+    # app.context() makes sure the exceptions are logged, if any, exit hooks are handled (i.e. lock files),
+    # and exit code is set properly.
+    with app.context():
+        # go ahead and call whatever methods you have defined under your app; .logger is
+        # provided by the Krux standard library. calling logger with each available log level
+        # might help you diagnose/tune your local syslog config; you can also over-ride the
+        # class' syslog_facility as configured above with the --syslog-facility argument.
+        app.run()
+        app.logger.warn("this is a warning level message")
+        app.logger.error("this is a error level message")
+        app.logger.critical("this is a critical level message")
 
 
 if __name__ == '__main__':
