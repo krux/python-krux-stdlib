@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013-2014 Krux Digital, Inc.
+# © 2013-2017 Krux Digital, Inc.
 #
 """
 This module provides tools for handling command-line arguments for a Krux
@@ -68,12 +68,14 @@ import krux.io
 import krux.stats
 import krux.logging
 
-######################
-### Object interface #
-######################
+####################
+# Object interface #
+####################
+
 
 class ApplicationError(StandardError):
     pass
+
 
 class CriticalApplicationError(StandardError):
     """
@@ -81,6 +83,7 @@ class CriticalApplicationError(StandardError):
     It should never be caught.
     """
     pass
+
 
 class Application(object):
     _VERSIONS = {}
@@ -111,21 +114,20 @@ class Application(object):
         :py:func:`cli.get_parser <krux.cli.get_parser>`
         """
 
-        ### note our name
-
+        # note our name
         self.name = name
 
-        ### get a CLI parser
-        ###
-        ### Since this is a functional interface, we pass along whether or not stdout logging is desired
-        ### for a particular subclass/script
-        ###
+        # get a CLI parser
+        #
+        # Since this is a functional interface, we pass along whether or not stdout logging is desired
+        # for a particular subclass/script
+        #
         self.parser = parser or krux.cli.get_parser(description=name, logging_stdout_default=log_to_stdout)
 
-        ### get more arguments, if needed
+        # get more arguments, if needed
         self.add_cli_arguments(self.parser)
 
-        ### and parse them
+        # and parse them
         self.args = self.parser.parse_args()
 
         # the cli facility should over-ride the passed-in syslog facility
@@ -136,8 +138,8 @@ class Application(object):
             log_to_stdout = self.args.log_to_stdout
         self._init_logging(logger, syslog_facility, log_to_stdout)
 
-        ### get a stats object - any arguments are handled via the CLI
-        ### pass '--stats' to enable stats using defaults (see krux.cli)
+        # get a stats object - any arguments are handled via the CLI
+        # pass '--stats' to enable stats using defaults (see krux.cli)
         self.stats = krux.stats.get_stats(
             client=getattr(self.args, 'stats', None),
             prefix='cli.%s' % name,
@@ -146,14 +148,14 @@ class Application(object):
             port=getattr(self.args, 'stats_port', None),
         )
 
-        ### Set up an krux.io object so we can run external commands
-        self.io = krux.io.IO( logger = self.logger, stats = self.stats )
+        # Set up an krux.io object so we can run external commands
+        self.io = krux.io.IO(logger=self.logger, stats=self.stats)
 
-        ### Exit hooks are run when the exit() method is called.
+        # Exit hooks are run when the exit() method is called.
         self._exit_hooks = []
 
-        ### Do you want an exclusive lock for this application?
-        ### This can be done later as well, with an explicit path
+        # Do you want an exclusive lock for this application?
+        # This can be done later as well, with an explicit path
         self.lockfile = False
 
         if lockfile:
@@ -177,21 +179,21 @@ class Application(object):
             self.logger.addHandler(handler)
 
     def acquire_lock(self, lockfile=True):
-        ### Did you just tell us to use a lock, or did you give us a location?
+        # Did you just tell us to use a lock, or did you give us a location?
         _lockfile = (os.path.join(self.args.lock_dir, self.name)
                      if lockfile is True
                      else lockfile)
 
-        ### this will throw an execption if anything goes wrong
+        # this will throw an execption if anything goes wrong
         try:
             self.lockfile = FileLock(_lockfile)
-            self.lockfile.acquire( timeout = DEFAULT_LOCK_TIMEOUT )
+            self.lockfile.acquire(timeout=DEFAULT_LOCK_TIMEOUT)
             self.logger.debug("Acquired lock: %s", self.lockfile.path)
         except LockError as err:
             self.logger.warning("Lockfile error occurred: %s", err)
             self.stats.incr("errors.lockfile_lock")
             raise
-        except:
+        except Exception:
             self.logger.warning(
                 "Unhandled exception while acquiring lockfile at %s", _lockfile
             )
@@ -208,8 +210,8 @@ class Application(object):
                 self.stats.incr("errors.lockfile_unlock")
                 raise
 
-        ### release the hook when we're done
-        self.add_exit_hook( ___release_lockfile, self )
+        # release the hook when we're done
+        self.add_exit_hook(___release_lockfile, self)
 
     def add_cli_arguments(self, parser):
         """
@@ -296,7 +298,7 @@ class Application(object):
         """
         try:
             yield
-        except:
+        except Exception:
             # always run exit hooks, even on exceptions
             self._run_exit_hooks()
             raise
@@ -307,9 +309,9 @@ class Application(object):
         self.exit()
 
 
-##########################
-### Functional interface #
-##########################
+########################
+# Functional interface #
+########################
 def get_group(parser, group_name):
     """
     Return an argument group based on the group name.
@@ -373,17 +375,17 @@ def add_logging_args(parser, stdout_default=True):
         help='syslog facility to use '
         '(default: %(default)s).'
     )
-    ###
-    ### If logging to stdout is enabled (the default, defined by the log_to_stdout arg
-    ### in __init__(), we provide a --no-log-to-stdout cli arg to disable it.
-    ###
-    ### If our calling script or subclass chooses to disable stdout logging by default,
-    ### we instead provide a --log-to-stdout arg to enable it, for debugging etc.
-    ###
-    ### This is particularly useful for Icinga monitoring scripts, where we don't want
-    ### logging info to reach stdout during normal operation, because Icinga ingests
-    ### everything that's written there.
-    ###
+    #
+    # If logging to stdout is enabled (the default, defined by the log_to_stdout arg
+    # in __init__(), we provide a --no-log-to-stdout cli arg to disable it.
+    #
+    # If our calling script or subclass chooses to disable stdout logging by default,
+    # we instead provide a --log-to-stdout arg to enable it, for debugging etc.
+    #
+    # This is particularly useful for Icinga monitoring scripts, where we don't want
+    # logging info to reach stdout during normal operation, because Icinga ingests
+    # everything that's written there.
+    #
     if stdout_default:
         group.add_argument(
             '--no-log-to-stdout',
@@ -437,6 +439,7 @@ def add_stats_args(parser):
 
     return parser
 
+
 def add_lockfile_args(parser):
     group = get_group(parser, 'lockfile')
 
@@ -447,6 +450,7 @@ def add_lockfile_args(parser):
     )
 
     return parser
+
 
 def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, logging_stdout_default=True, **kwargs):
     """
@@ -462,15 +466,15 @@ def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, 
     """
     parser = ArgumentParser(description=description, **kwargs)
 
-    ### standard logging arguments
+    # standard logging arguments
     if logging:
         parser = add_logging_args(parser, logging_stdout_default)
 
-    ### standard stats arguments
+    # standard stats arguments
     if stats:
         parser = add_stats_args(parser)
 
-    ### standard lockfile args
+    # standard lockfile args
     if lockfile:
         parser = add_lockfile_args(parser)
 
