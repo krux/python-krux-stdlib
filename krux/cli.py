@@ -50,23 +50,17 @@ import __main__
 #########################
 # Third Party Libraries #
 #########################
-from argparse import ArgumentParser
 from lockfile import FileLock, LockError, UnlockError
 
 ######################
 # Internal Libraries #
 ######################
-from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
-from krux.constants import (
-    DEFAULT_STATSD_HOST,
-    DEFAULT_STATSD_PORT,
-    DEFAULT_STATSD_ENV,
-    DEFAULT_LOCK_DIR,
-    DEFAULT_LOCK_TIMEOUT,
-)
+from krux.logging import DEFAULT_LOG_FACILITY
+from krux.constants import DEFAULT_LOCK_TIMEOUT
 import krux.io
 import krux.stats
 import krux.logging
+from krux.parser import get_group, get_parser
 
 ####################
 # Object interface #
@@ -126,7 +120,7 @@ class Application(object):
         # Since this is a functional interface, we pass along whether or not stdout logging is desired
         # for a particular subclass/script
         #
-        self.parser = parser or krux.cli.get_parser(description=name, logging_stdout_default=log_to_stdout)
+        self.parser = parser or get_parser(description=name, logging_stdout_default=log_to_stdout)
 
         # get more arguments, if needed
         self.add_cli_arguments(self.parser)
@@ -311,178 +305,6 @@ class Application(object):
 
         # if the block finishes normally, call exit
         self.exit()
-
-
-########################
-# Functional interface #
-########################
-def get_group(parser, group_name):
-    """
-    Return an argument group based on the group name.
-
-    This will return an existing group if it exists, or create a new one.
-
-    :argument parser: :py:class:`python3:argparse.ArgumentParser` to
-                      add/retrieve the group to/from.
-
-    :argument group_name: Name of the argument group to be created/returned.
-    """
-
-    # We don't want to add an additional group if there's already a 'logging'
-    # group. Sadly, ArgumentParser doesn't provide an API for this, so we have
-    # to be naughty and access a private variable.
-    groups = [g.title for g in parser._action_groups]
-
-    if group_name in groups:
-        group = parser._action_groups[groups.index(group_name)]
-    else:
-        group = parser.add_argument_group(group_name)
-
-    return group
-
-
-def add_logging_args(parser, stdout_default=True):
-    """
-    Add logging-related command-line arguments to the given parser.
-
-    Logging arguments are added to the 'logging' argument group which is
-    created if it doesn't already exist.
-
-    :argument parser: parser instance to which the arguments will be added
-    """
-    group = get_group(parser, 'logging')
-
-    group.add_argument(
-        '--log-level',
-        default=DEFAULT_LOG_LEVEL,
-        choices=LEVELS.keys(),
-        help='Verbosity of logging. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--log-file',
-        default=None,
-        help='Full-qualified path to the log file '
-        '(default: %(default)s).'
-    )
-
-    group.add_argument(
-        '--no-syslog-facility',
-        dest='syslog_facility',
-        action='store_const',
-        default=DEFAULT_LOG_FACILITY,
-        const=None,
-        help='disable syslog facility',
-    )
-    group.add_argument(
-        '--syslog-facility',
-        default=DEFAULT_LOG_FACILITY,
-        help='syslog facility to use '
-        '(default: %(default)s).'
-    )
-    #
-    # If logging to stdout is enabled (the default, defined by the log_to_stdout arg
-    # in __init__(), we provide a --no-log-to-stdout cli arg to disable it.
-    #
-    # If our calling script or subclass chooses to disable stdout logging by default,
-    # we instead provide a --log-to-stdout arg to enable it, for debugging etc.
-    #
-    # This is particularly useful for Icinga monitoring scripts, where we don't want
-    # logging info to reach stdout during normal operation, because Icinga ingests
-    # everything that's written there.
-    #
-    if stdout_default:
-        group.add_argument(
-            '--no-log-to-stdout',
-            dest='log_to_stdout',
-            default=True,
-            action='store_false',
-            help='Suppress logging to stdout/stderr '
-            '(default: %(default)s).'
-        )
-    else:
-        group.add_argument(
-            '--log-to-stdout',
-            default=False,
-            action='store_true',
-            help='Log to stdout/stderr -- useful for debugging! '
-            '(default: %(default)s).'
-        )
-
-    return parser
-
-
-def add_stats_args(parser):
-    """
-    Add stats-related command-line arguments to the given parser.
-
-    :argument parser: parser instance to which the arguments will be added
-    """
-    group = get_group(parser, 'stats')
-
-    group.add_argument(
-        '--stats',
-        default=False,
-        action='store_true',
-        help='Enable sending statistics to statsd. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-host',
-        default=DEFAULT_STATSD_HOST,
-        help='Statsd host to send statistics to. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-port',
-        default=DEFAULT_STATSD_PORT,
-        help='Statsd port to send statistics to. (default: %(default)s)'
-    )
-    group.add_argument(
-        '--stats-environment',
-        default=DEFAULT_STATSD_ENV,
-        help='Statsd environment. (default: %(default)s)'
-    )
-
-    return parser
-
-
-def add_lockfile_args(parser):
-    group = get_group(parser, 'lockfile')
-
-    group.add_argument(
-        '--lock-dir',
-        default=DEFAULT_LOCK_DIR,
-        help='Dir where lock files are stored (default: %(default)s)'
-    )
-
-    return parser
-
-
-def get_parser(description="Krux CLI", logging=True, stats=True, lockfile=True, logging_stdout_default=True, **kwargs):
-    """
-    Run setup and return an argument parser for Krux applications
-
-    :keyword string description: Branding for the usage output.
-    :keyword bool logging: Enable standard logging arguments.
-    :keyword bool stats: Enable standard stats argument.
-    :keyword bool logging_stdout_default: Whether or not logging to stdout is enabled (affects cli args setup)
-
-    All other keywords are passed verbatim to
-    :py:class:`argparse.ArgumentParser`
-    """
-    parser = ArgumentParser(description=description, **kwargs)
-
-    # standard logging arguments
-    if logging:
-        parser = add_logging_args(parser, logging_stdout_default)
-
-    # standard stats arguments
-    if stats:
-        parser = add_stats_args(parser)
-
-    # standard lockfile args
-    if lockfile:
-        parser = add_lockfile_args(parser)
-
-    return parser
 
 
 def get_script_name():
