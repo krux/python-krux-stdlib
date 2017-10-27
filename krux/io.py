@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013-2014 Krux Digital, Inc.
+# © 2013-2017 Salesforce.com, inc.
 #
 """
 This module provides tools for handling IO operations, like running

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2014 Krux Digital, Inc.
+# © 2014-2017 Salesforce.com, inc.
 #
 """
 Classes & Functions for email.

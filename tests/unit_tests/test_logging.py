@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2013 Krux Digital, Inc.
+# © 2013-2017 Salesforce.com, inc.
 #
 """
 Unit tests for the krux.logging module.
