@@ -64,7 +64,7 @@ def add_logging_args(parser, stdout_default=True):
 
     :argument parser: parser instance to which the arguments will be added
     """
-    group = get_group(parser=parser, group_name='logging', prefix=False)
+    group = get_group(parser=parser, group_name='logging', env_var_prefix=False)
 
     group.add_argument(
         '--log-level',
@@ -132,7 +132,7 @@ def add_stats_args(parser):
 
     :argument parser: parser instance to which the arguments will be added
     """
-    group = get_group(parser=parser, group_name='stats', prefix=False)
+    group = get_group(parser=parser, group_name='stats', env_var_prefix=False)
 
     group.add_argument(
         '--stats',
@@ -160,7 +160,7 @@ def add_stats_args(parser):
 
 
 def add_lockfile_args(parser):
-    group = get_group(parser=parser, group_name='lockfile', prefix=False)
+    group = get_group(parser=parser, group_name='lockfile', env_var_prefix=False)
 
     group.add_argument(
         '--lock-dir',
@@ -171,7 +171,7 @@ def add_lockfile_args(parser):
     return parser
 
 
-def get_group(parser, group_name, prefix=None):
+def get_group(parser, group_name, env_var_prefix=None):
     """
     Return an argument group based on the group name.
 
@@ -191,29 +191,47 @@ def get_group(parser, group_name, prefix=None):
     if group_name in groups:
         group = parser._action_groups[groups.index(group_name)]
     else:
-        group = parser.add_argument_group(title=group_name, prefix=prefix)
+        group = parser.add_argument_group(title=group_name, env_var_prefix=env_var_prefix)
 
     return group
 
 
 class KruxParser(Wrapper):
-    def add_argument_group(self, prefix, *args, **kwargs):
+    def add_argument_group(self, env_var_prefix, *args, **kwargs):
+        """
+        Creates a KruxGroup object that wraps the argparse._ArgumentGroup and creates a nice group of arguments
+        that should be considered together.
+
+        :param env_var_prefix: Prefix to use for the environment variables support of this group. If set to None,
+                               uses the title of the _ArgumentGroup that this is wrapping. If set to False,
+                               does not add any prefix.
+        :type env_var_prefix: str | bool
+        :param args: Ordered arguments passed directly to argparse._ArgumentGroup.__init__()
+        :type args: list
+        :param kwargs: Keyword arguments passed directly to argparse._ArgumentGroup.__init__()
+        :type kwargs: dict
+        :return: The created KruxGroup object
+        :rtype: krux.parser.KruxGroup
+        """
         group = KruxGroup(
-            wrapped=_ArgumentGroup(self, *args, **kwargs), prefix=prefix, logger=self._logger, stats=self._stats,
+            wrapped=_ArgumentGroup(self, *args, **kwargs),
+            env_var_prefix=env_var_prefix,
+            logger=self._logger,
+            stats=self._stats,
         )
         self._wrapped._action_groups.append(group)
         return group
 
 
 class KruxGroup(Wrapper):
-    def __init__(self, prefix=None, *args, **kwargs):
+    def __init__(self, env_var_prefix=None, *args, **kwargs):
         """
         Creates a wrapper around argparse._ArgumentGroup that handles some help doc automation as well as environment
         variable fall back
 
-        :param prefix: Prefix to use for the environment variables. If set to None, uses the title
-                       of the _ArgumentGroup that this is wrapping. If set to False, does not add any prefix
-        :type prefix: str | bool
+        :param env_var_prefix: Prefix to use for the environment variables. If set to None, uses the title
+                               of the _ArgumentGroup that this is wrapping. If set to False, does not add any prefix.
+        :type env_var_prefix: str | bool
         :param args: Ordered arguments passed directly to krux.wrapper.Wrapper.__init__()
         :type args: list
         :param kwargs: Keyword arguments passed directly to krux.wrapper.Wrapper.__init__()
@@ -222,18 +240,49 @@ class KruxGroup(Wrapper):
         # Call to the superclass to bootstrap.
         super(KruxGroup, self).__init__(*args, **kwargs)
 
-        if prefix is None:
+        if env_var_prefix is None:
             self._env_prefix = self._wrapped.title + '_'
-        elif prefix is False:
+        elif env_var_prefix is False:
             self._env_prefix = ''
         else:
-            self._env_prefix = str(prefix) + '_'
+            self._env_prefix = str(env_var_prefix) + '_'
 
     def add_argument(self, *args, **kwargs):
+        """
+        Creates a CLI argument under this group based on the passed parameters.
+
+        :param env_var: Name of the environment variable to use. If set to None or not set, uses the name of
+                        the option and the env_var_prefix passed to the group to deduce a name. If set to False,
+                        does not add any environment variable support.
+        :type env_var: str | bool
+        :param add_env_var_help: Whether to add the name of the environment variable to the help text. If set to False
+                                 or if env_var is set to False, the help text is not appended.
+        :type add_env_var_help: bool
+        :param add_default_help: Whether to add the default value of the argument to the help text. If set to False
+                                 or if the help text already includes it, it is not appended.
+        :type add_default_help: bool
+        :param args: Ordered arguments passed directly to argparse._ArgumentGroup.add_argument()
+        :type args: list
+        :param kwargs: Keyword arguments passed directly to argparse._ArgumentGroup.add_argument()
+        :type kwargs: dict
+        :return: Action class of this argument
+        :rtype: argparse.Action
+        """
+        # Values that are used exclusively in this override
         env_var = kwargs.pop('env_var', None)
+        add_env_var_help = kwargs.pop('add_env_var_help', True)
+        add_default_help = kwargs.pop('add_default_help', True)
+
+        # Values that are referenced in this override but also used in _ArgumentGroup
+        old_default_value = kwargs.get('default', None)
+        old_help_value = kwargs.get('help', '')
+        help_text_list = [old_help_value]
 
         # There must be an argument defined and it must be prefixed. (i.e. This does not handle positional arguments.)
-        if env_var is not False and len(args) > 0 and args[0][0] in self.prefix_chars:
+        is_optional_argument = (len(args) > 0 and args[0][0] in self.prefix_chars)
+
+        # Modify the default value to rely on the environment variable
+        if env_var is not False and is_optional_argument:
             # Find the first long-named option
             first_long = next((arg_name for arg_name in args if arg_name[1] in self.prefix_chars), None)
 
@@ -257,7 +306,14 @@ class KruxGroup(Wrapper):
             # Override the default value to use the environment variable
             kwargs['default'] = environ.get(key=key, failobj=kwargs.get('default', None))
 
-            # TODO: Default should be added regardless of env_var and unless disabled
-            kwargs['help'] = kwargs.get('help', '') + " (env: {key}) (default: %(default)s)".format(key=key)
+            # Add the environment variable to the help text
+            if add_env_var_help:
+                help_text_list.append("(env: {key})".format(key=key))
+
+        # Append the default value to the help text
+        if add_default_help and is_optional_argument and "(default: " not in old_help_value:
+            help_text_list.append("(default: {default})".format(default=old_default_value))
+
+        kwargs['help'] = ' '.join(help_text_list)
 
         return self._wrapped.add_argument(*args, **kwargs)
