@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2016 Krux Digital, Inc.
+# © 2016-2017 Salesforce.com, inc.
 #
 
 #
@@ -42,6 +42,8 @@ class Object(object):
         :param stats: Stats, recommended to be obtained using krux.cli.Application
         :type stats: kruxstatsd.StatsClient
         """
+        # Call to the superclass to bootstrap.
+        super(Object, self).__init__()
 
         # Private variables, not to be used outside this module
         self._name = name if name is not None else self.__class__.__name__
