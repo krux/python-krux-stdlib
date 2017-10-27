@@ -230,10 +230,10 @@ class KruxGroup(Wrapper):
             self._env_prefix = str(prefix) + '_'
 
     def add_argument(self, *args, **kwargs):
-        use_env_var = kwargs.pop('use_env_var', True)
+        env_var = kwargs.pop('env_var', None)
 
         # There must be an argument defined and it must be prefixed. (i.e. This does not handle positional arguments.)
-        if use_env_var and len(args) > 0 and args[0][0] in self.prefix_chars:
+        if env_var is not False and len(args) > 0 and args[0][0] in self.prefix_chars:
             # Find the first long-named option
             first_long = next((arg_name for arg_name in args if arg_name[1] in self.prefix_chars), None)
 
@@ -243,15 +243,21 @@ class KruxGroup(Wrapper):
                     'You must either disable the environment variable fall back or provide a long name for the option'
                 )
 
-            # Determine the key of the environment variable for this argument
-            key = first_long.lstrip(self.prefix_chars)
-            if not key:
-                raise Exception(
-                    'You must provide a valid name for the option'
-                )
-            key = (self._env_prefix + key.replace('-', '_')).upper()
+            if env_var is None:
+                # Determine the key of the environment variable for this argument
+                key = first_long.lstrip(self.prefix_chars)
+                if not key:
+                    raise Exception(
+                        'You must provide a valid name for the option'
+                    )
+                key = (self._env_prefix + key.replace('-', '_')).upper()
+            else:
+                key = env_var
 
             # Override the default value to use the environment variable
             kwargs['default'] = environ.get(key=key, failobj=kwargs.get('default', None))
+
+            # TODO: Default should be added regardless of env_var and unless disabled
+            kwargs['help'] = kwargs.get('help', '') + " (env: {key}) (default: %(default)s)".format(key=key)
 
         return self._wrapped.add_argument(*args, **kwargs)
