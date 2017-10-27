@@ -5,7 +5,7 @@
 pystache==0.5.4
 
 # For API documentation
-Sphinx==1.4.6
+Sphinx==1.6.5
 
 # For stats
 kruxstatsd==0.3.1
@@ -15,7 +15,7 @@ argparse==1.4.0
 
 # For krux.tornado
 tornado==3.0.1
-simplejson==3.8.2
+simplejson==3.11.1
 GitPython==2.0.8
 
 # For lockfiles in CLI
@@ -30,16 +30,23 @@ subprocess32==3.2.7
 # and another one does.
 
 # From Sphinx
-Jinja2==2.8
-MarkupSafe==0.23
-Pygments==2.1.3
-alabaster==0.7.9
-babel==2.3.4
-docutils==0.12
+Jinja2==2.9.6
+MarkupSafe==1.0
+Pygments==2.2.0
+alabaster==0.7.10
+babel==2.5.1
+certifi==2017.7.27.1
+chardet==3.0.4
+docutils==0.14
+idna==2.6
 imagesize==0.7.1
-pytz==2016.6.1
-six==1.10.0
+pytz==2017.2
+requests==2.18.4
+six==1.11.0
 snowballstemmer==1.2.1
+sphinxcontrib-websupport==1.0.1
+typing==3.6.2
+urllib3==1.22
 
 # From kruxstatsd
 statsd==3.2.1
