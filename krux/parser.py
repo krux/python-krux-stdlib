@@ -70,13 +70,12 @@ def add_logging_args(parser, stdout_default=True):
         '--log-level',
         default=DEFAULT_LOG_LEVEL,
         choices=LEVELS.keys(),
-        help='Verbosity of logging. (default: %(default)s)'
+        help='Verbosity of logging.'
     )
     group.add_argument(
         '--log-file',
         default=None,
-        help='Full-qualified path to the log file '
-        '(default: %(default)s).'
+        help='Full-qualified path to the log file',
     )
 
     group.add_argument(
@@ -85,13 +84,14 @@ def add_logging_args(parser, stdout_default=True):
         action='store_const',
         default=DEFAULT_LOG_FACILITY,
         const=None,
+        env_var=False,
+        add_default_help=False,
         help='disable syslog facility',
     )
     group.add_argument(
         '--syslog-facility',
         default=DEFAULT_LOG_FACILITY,
-        help='syslog facility to use '
-        '(default: %(default)s).'
+        help='syslog facility to use',
     )
     #
     # If logging to stdout is enabled (the default, defined by the log_to_stdout arg
@@ -110,17 +110,16 @@ def add_logging_args(parser, stdout_default=True):
             dest='log_to_stdout',
             default=True,
             action='store_false',
-
-            help='Suppress logging to stdout/stderr '
-            '(default: %(default)s).'
+            env_var=False,
+            help='Suppress logging to stdout/stderr',
         )
     else:
         group.add_argument(
             '--log-to-stdout',
             default=False,
             action='store_true',
-            help='Log to stdout/stderr -- useful for debugging! '
-            '(default: %(default)s).'
+            env_var=False,
+            help='Log to stdout/stderr -- useful for debugging!',
         )
 
     return parser
@@ -138,22 +137,22 @@ def add_stats_args(parser):
         '--stats',
         default=False,
         action='store_true',
-        help='Enable sending statistics to statsd. (default: %(default)s)'
+        help='Enable sending statistics to statsd.'
     )
     group.add_argument(
         '--stats-host',
         default=DEFAULT_STATSD_HOST,
-        help='Statsd host to send statistics to. (default: %(default)s)'
+        help='Statsd host to send statistics to.'
     )
     group.add_argument(
         '--stats-port',
         default=DEFAULT_STATSD_PORT,
-        help='Statsd port to send statistics to. (default: %(default)s)'
+        help='Statsd port to send statistics to.'
     )
     group.add_argument(
         '--stats-environment',
         default=DEFAULT_STATSD_ENV,
-        help='Statsd environment. (default: %(default)s)'
+        help='Statsd environment.'
     )
 
     return parser
@@ -165,7 +164,7 @@ def add_lockfile_args(parser):
     group.add_argument(
         '--lock-dir',
         default=DEFAULT_LOCK_DIR,
-        help='Dir where lock files are stored (default: %(default)s)'
+        help='Dir where lock files are stored'
     )
 
     return parser
