@@ -36,7 +36,7 @@ class ObjectTest(unittest.TestCase):
 
     def test_init(self):
         """
-        __init__() correctly uses all passed variables
+        krux.object.Object.__init__() correctly uses all passed variables
         """
         logger = MagicMock()
         stats = MagicMock()
@@ -55,7 +55,7 @@ class ObjectTest(unittest.TestCase):
     @patch('krux.object.get_stats')
     def test_init_no_args(self, mock_stats, mock_logger):
         """
-        __init__() correctly generates default objects when no argument is passed
+        krux.object.Object.__init__() correctly generates default objects when no argument is passed
         """
         app = Object()
 
