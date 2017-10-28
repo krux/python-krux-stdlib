@@ -221,6 +221,12 @@ class KruxParser(Wrapper):
         self._wrapped._action_groups.append(group)
         return group
 
+    def __eq__(self, other):
+        if not isinstance(other, KruxParser):
+            return False
+        else:
+            return other._wrapped == self._wrapped
+
 
 class KruxGroup(Wrapper):
     def __init__(self, env_var_prefix=None, *args, **kwargs):

@@ -97,6 +97,9 @@ class WrapperTest(unittest.TestCase):
         self.assertEqual(debug_calls, self._logger.debug.call_args_list)
 
     def test_get_wrapper_function(self):
+        """
+        krux.wrapper.Wrapper._get_wrapper_function() correctly provides a way to wrap the wrapped's function
+        """
         self._wrapper.y(2)
 
         self._logger.info.assert_called_once_with('Calling function %s', self._object.y.__name__)
