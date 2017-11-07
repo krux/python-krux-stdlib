@@ -38,7 +38,7 @@ def get_parser(
     # GOTCHA: KruxParser takes in a logger and a stats object. However, "stats" parameter is already defined
     #         as a boolean flag. Do not change the name of that parameter and break backward compatibility.
     # TODO: Update and clean up the parameter names so we can pass logger and stats into KruxParser.
-    parser = KruxParser(wrapped=ArgumentParser(*args, **kwargs))
+    parser = KruxParser(*args, **kwargs)
 
     # standard logging arguments
     if logging:
@@ -195,7 +195,7 @@ def get_group(parser, group_name, env_var_prefix=None):
     return group
 
 
-class KruxParser(Wrapper):
+class KruxParser(ArgumentParser):
     def add_argument_group(self, env_var_prefix, *args, **kwargs):
         """
         Creates a KruxGroup object that wraps the argparse._ArgumentGroup and creates a nice group of arguments
@@ -212,23 +212,12 @@ class KruxParser(Wrapper):
         :return: The created KruxGroup object
         :rtype: krux.parser.KruxGroup
         """
-        group = KruxGroup(
-            wrapped=_ArgumentGroup(self, *args, **kwargs),
-            env_var_prefix=env_var_prefix,
-            logger=self._logger,
-            stats=self._stats,
-        )
-        self._wrapped._action_groups.append(group)
+        group = KruxGroup(env_var_prefix=env_var_prefix, container=self, *args, **kwargs)
+        self._action_groups.append(group)
         return group
 
-    def __eq__(self, other):
-        if not isinstance(other, KruxParser):
-            return False
-        else:
-            return other._wrapped == self._wrapped
 
-
-class KruxGroup(Wrapper):
+class KruxGroup(_ArgumentGroup):
     def __init__(self, env_var_prefix=None, *args, **kwargs):
         """
         Creates a wrapper around argparse._ArgumentGroup that handles some help doc automation as well as environment
@@ -246,7 +235,7 @@ class KruxGroup(Wrapper):
         super(KruxGroup, self).__init__(*args, **kwargs)
 
         if env_var_prefix is None:
-            self._env_prefix = self._wrapped.title + '_'
+            self._env_prefix = self.title + '_'
         elif env_var_prefix is False:
             self._env_prefix = ''
         else:
@@ -321,4 +310,4 @@ class KruxGroup(Wrapper):
 
         kwargs['help'] = ' '.join(help_text_list)
 
-        return self._wrapped.add_argument(*args, **kwargs)
+        return super(KruxGroup, self).add_argument(*args, **kwargs)

@@ -38,7 +38,7 @@ class GetterTest(unittest.TestCase):
     @patch('krux.parser.add_logging_args')
     @patch('krux.parser.add_stats_args')
     @patch('krux.parser.add_lockfile_args')
-    @patch('krux.parser.ArgumentParser')
+    @patch('krux.parser.KruxParser')
     def test_get_parser_all(self, mock_parser_class, mock_lockfile, mock_stats, mock_logging):
         """
         krux.parser.get_parser() correctly create a KruxParser object based on the parameters
@@ -51,9 +51,7 @@ class GetterTest(unittest.TestCase):
         parser = get_parser(True, True, True, True, self.FAKE_NAME, description=self.FAKE_DESCRIPTION)
 
         # Check whether the return value is correct
-        self.assertEqual(KruxParser(wrapped=mock_parser_class.return_value), parser)
-
-        # Check whether the ArgumentParser was created properly
+        self.assertEqual(mock_parser_class.return_value, parser)
         mock_parser_class.assert_called_once_with(self.FAKE_NAME, description=self.FAKE_DESCRIPTION)
 
         # Check whether the add_x_args functions were correctly called
@@ -64,7 +62,7 @@ class GetterTest(unittest.TestCase):
     @patch('krux.parser.add_logging_args')
     @patch('krux.parser.add_stats_args')
     @patch('krux.parser.add_lockfile_args')
-    @patch('krux.parser.ArgumentParser')
+    @patch('krux.parser.KruxParser')
     def test_get_parser_none(self, mock_parser_class, mock_lockfile, mock_stats, mock_logging):
         """
         krux.parser.get_parser() correctly skips arguments when requested
@@ -74,7 +72,8 @@ class GetterTest(unittest.TestCase):
         parser = get_parser(logging=False, stats=False, lockfile=False)
 
         # Check whether the return value is correct
-        self.assertEqual(KruxParser(wrapped=mock_parser_class.return_value), parser)
+        self.assertEqual(mock_parser_class.return_value, parser)
+        mock_parser_class.assert_called_once_with()
 
         # Check whether the ArgumentParser was created properly
         mock_parser_class.assert_called_once_with()
@@ -85,17 +84,11 @@ class GetterTest(unittest.TestCase):
         self.assertFalse(mock_lockfile.called)
 
     @patch('krux.parser.add_logging_args')
-    @patch('krux.parser.add_stats_args')
-    @patch('krux.parser.add_lockfile_args')
-    @patch('krux.parser.ArgumentParser')
-    def test_get_parser_no_stdout(self, mock_parser_class, mock_lockfile, mock_stats, mock_logging):
+    def test_get_parser_no_stdout(self, mock_logging):
         """
         krux.parser.get_parser() correctly sets the default value of the --log-to-stdout CLI argument
         """
-        mock_parser_class.return_value = MagicMock()
         mock_logging.side_effect = lambda x, y: x
-        mock_stats.side_effect = lambda x: x
-        mock_lockfile.side_effect = lambda x: x
 
         parser = get_parser(logging_stdout_default=False)
 
