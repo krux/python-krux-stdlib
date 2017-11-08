@@ -17,7 +17,6 @@ from argparse import ArgumentParser, _ArgumentGroup
 #
 # Internal libraries
 #
-from krux.wrapper import Wrapper
 from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
 from krux.constants import (
     DEFAULT_STATSD_HOST,
@@ -104,6 +103,8 @@ def add_logging_args(parser, stdout_default=True):
     # logging info to reach stdout during normal operation, because Icinga ingests
     # everything that's written there.
     #
+    # TODO: With the environment variable support, this use case should be handled
+    #       via the environment variable. Consider removing this in v3.0
     if stdout_default:
         group.add_argument(
             '--no-log-to-stdout',
