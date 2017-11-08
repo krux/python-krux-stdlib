@@ -219,6 +219,9 @@ class KruxParser(ArgumentParser):
 
 
 class KruxGroup(_ArgumentGroup):
+    HELP_ENV_VAR = "(env: {key})"
+    HELP_DEFAULT = "(default: {default})"
+
     def __init__(self, env_var_prefix=None, *args, **kwargs):
         """
         Creates a wrapper around argparse._ArgumentGroup that handles some help doc automation as well as environment
@@ -283,7 +286,7 @@ class KruxGroup(_ArgumentGroup):
 
             # There must be a long name or environment variable support is explicitly turned off.
             if first_long is None:
-                raise Exception(
+                raise ValueError(
                     'You must either disable the environment variable fall back or provide a long name for the option'
                 )
 
@@ -291,10 +294,11 @@ class KruxGroup(_ArgumentGroup):
                 # Determine the key of the environment variable for this argument
                 key = first_long.lstrip(self.prefix_chars)
                 if not key:
-                    raise Exception(
+                    raise ValueError(
                         'You must provide a valid name for the option'
                     )
-                key = (self._env_prefix + key.replace('-', '_')).upper()
+                # TODO: Handle all of prefix_chars, not just '-' here
+                key = (self._env_prefix + key).replace('-', '_').upper()
             else:
                 key = env_var
 
@@ -303,11 +307,11 @@ class KruxGroup(_ArgumentGroup):
 
             # Add the environment variable to the help text
             if add_env_var_help:
-                help_text_list.append("(env: {key})".format(key=key))
+                help_text_list.append(self.HELP_ENV_VAR.format(key=key))
 
         # Append the default value to the help text
         if add_default_help and is_optional_argument and "(default: " not in old_help_value:
-            help_text_list.append("(default: {default})".format(default=old_default_value))
+            help_text_list.append(self.HELP_DEFAULT.format(default=old_default_value))
 
         kwargs['help'] = ' '.join(help_text_list)
 

@@ -258,6 +258,9 @@ class KruxParserTest(unittest.TestCase):
 
     @patch('krux.parser.KruxGroup')
     def test_add_argument_group(self, mock_group_class):
+        """
+        krux.parser.KruxParser.add_argument_group() correctly creates and returns a KruxGroup object
+        """
         env_var_prefix = False
         title = 'fake-title'
 
@@ -278,4 +281,242 @@ class KruxParserTest(unittest.TestCase):
 
 
 class KruxGroupTest(unittest.TestCase):
-    pass
+    FAKE_TITLE = 'fake-app'
+    POSITIONAL_ARGUMENT = 'foo'
+    OPTIONAL_ARGUMENT = '--bar'
+    OPTIONAL_ARGUMENT_SECONDARY = '-b'
+    DEFAULT_VALUE = 'bar'
+    ENVIRONMENT_KEY = (FAKE_TITLE + '_' + OPTIONAL_ARGUMENT.lstrip('-')).replace('-', '_').upper()
+    ENVIRONMENT_VALUE = 'baz'
+    HELP_TEXT = 'help'
+
+    def setUp(self):
+        self._parser = KruxParser()
+        self._group = KruxGroup(title=self.FAKE_TITLE, container=self._parser)
+
+    def test_init_no_prefix(self):
+        """
+        krux.parser.KruxGroup.__init__() correctly sets prefix for the environment variable support by default
+        """
+        self._group = KruxGroup(env_var_prefix=None, title=self.FAKE_TITLE, container=self._parser)
+
+        # Check whether the _env_prefix is correct
+        self.assertEqual(self.FAKE_TITLE + '_', self._group._env_prefix)
+
+    def test_init_str_prefix(self):
+        """
+        krux.parser.KruxGroup.__init__() correctly handles the prefix override
+        """
+        env_var_prefix = 'test'
+        self._group = KruxGroup(env_var_prefix=env_var_prefix, title=self.FAKE_TITLE, container=self._parser)
+
+        # Check whether the _env_prefix is correct
+        self.assertEqual(env_var_prefix + '_', self._group._env_prefix)
+
+    def test_init_false_prefix(self):
+        """
+        krux.parser.KruxGroup.__init__() correctly omits the prefix
+        """
+        self._group = KruxGroup(env_var_prefix=False, title=self.FAKE_TITLE, container=self._parser)
+
+        # Check whether the _env_prefix is correct
+        self.assertEqual('', self._group._env_prefix)
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_optional(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly updates the default value and help text for optional arguments
+        """
+        self._group.add_argument(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=self.HELP_TEXT,
+        )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.ENVIRONMENT_VALUE,
+            help=' '.join([
+                self.HELP_TEXT,
+                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
+                KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True)
+    def test_add_argument_empty_env_var(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly falls back to the supplied default value when environment variable is not there
+        """
+        self._group.add_argument(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=self.HELP_TEXT,
+        )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=' '.join([
+                self.HELP_TEXT,
+                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
+                KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_false_env_var(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly omits environment variable support if disabled
+        """
+        self._group.add_argument(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=self.HELP_TEXT,
+            env_var=False,
+        )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=' '.join([
+                self.HELP_TEXT,
+                KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    def test_add_argument_given_env_var(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly uses the provided environment variable key
+        """
+        env_key = 'SOME_KEY'
+        env_value = 'some-value'
+        with patch.dict('krux.parser.environ', clear=True, values={env_key: env_value}):
+            self._group.add_argument(
+                self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+                default=self.DEFAULT_VALUE,
+                help=self.HELP_TEXT,
+                env_var=env_key,
+            )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=env_value,
+            help=' '.join([
+                self.HELP_TEXT,
+                KruxGroup.HELP_ENV_VAR.format(key=env_key),
+                KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_no_env_var_help(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly omits environment variable help text if disabled
+        """
+        self._group.add_argument(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=self.HELP_TEXT,
+            add_env_var_help=False,
+        )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.ENVIRONMENT_VALUE,
+            help=' '.join([
+                self.HELP_TEXT,
+                KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_no_default_help(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly omits default help text if disabled
+        """
+        self._group.add_argument(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=self.HELP_TEXT,
+            add_default_help=False,
+        )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.ENVIRONMENT_VALUE,
+            help=' '.join([
+                self.HELP_TEXT,
+                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_existing_default_help(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly omits default help text if already existing
+        """
+        existing = ' (default: lol)'
+        self._group.add_argument(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.DEFAULT_VALUE,
+            help=self.HELP_TEXT + existing,
+        )
+
+        mock_add_argument.assert_called_once_with(
+            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
+            default=self.ENVIRONMENT_VALUE,
+            help=' '.join([
+                self.HELP_TEXT + existing,
+                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
+            ]),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    def test_add_argument_positional(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly does not affect positional arguments
+        """
+        self._group.add_argument(self.POSITIONAL_ARGUMENT, help=self.HELP_TEXT)
+
+        mock_add_argument.assert_called_once_with(self.POSITIONAL_ARGUMENT, help=self.HELP_TEXT)
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_no_long_option(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly throws exception if there is no long option
+        """
+        with self.assertRaises(ValueError) as context:
+            self._group.add_argument(
+                self.OPTIONAL_ARGUMENT_SECONDARY,
+                default=self.DEFAULT_VALUE,
+                help=self.HELP_TEXT,
+            )
+
+        self.assertEqual(
+            'You must either disable the environment variable fall back or provide a long name for the option',
+            str(context.exception),
+        )
+
+    @patch('krux.parser._ArgumentGroup.add_argument')
+    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
+    def test_add_argument_invalid_option(self, mock_add_argument):
+        """
+        krux.parser.KruxGroup.add_argument() correctly throws exception if the option is invalid
+        """
+        with self.assertRaises(ValueError) as context:
+            self._group.add_argument(
+                '--',
+                default=self.DEFAULT_VALUE,
+                help=self.HELP_TEXT,
+            )
+
+        self.assertEqual('You must provide a valid name for the option', str(context.exception))
