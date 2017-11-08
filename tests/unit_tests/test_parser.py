@@ -250,3 +250,32 @@ class AddTest(unittest.TestCase):
             call('--lock-dir', default=DEFAULT_LOCK_DIR, help='Dir where lock files are stored'),
         ]
         self.assertEqual(add_argument_calls, self._group.add_argument.call_args_list)
+
+
+class KruxParserTest(unittest.TestCase):
+    def setUp(self):
+        self._parser = KruxParser()
+
+    @patch('krux.parser.KruxGroup')
+    def test_add_argument_group(self, mock_group_class):
+        env_var_prefix = False
+        title = 'fake-title'
+
+        group = self._parser.add_argument_group(env_var_prefix=env_var_prefix, title=title)
+
+        # Check whether the return value is correct
+        self.assertEqual(mock_group_class.return_value, group)
+
+        # Check whether the KruxGroup object was created correctly
+        mock_group_class.assert_called_once_with(
+            env_var_prefix=env_var_prefix,
+            container=self._parser,
+            title=title,
+        )
+
+        # Check whether the KruxGroup object was added to the list
+        self.assertIn(mock_group_class.return_value, self._parser._action_groups)
+
+
+class KruxGroupTest(unittest.TestCase):
+    pass
