@@ -132,7 +132,7 @@ class Application(object):
         self.add_cli_arguments(self.parser)
 
         # and parse them
-        self.args = self.parser.parse_args(parser_args)
+        self.args = self.parser.parse_args(args=parser_args)
 
         # the cli facility should over-ride the passed-in syslog facility
         syslog_facility = self.args.syslog_facility
