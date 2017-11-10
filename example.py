@@ -9,7 +9,7 @@ class ExampleLoggingApp(krux.cli.Application):
       * a command-line option parser
       * a logger
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # the 'name' parameter is just a string/name for your script. It should be unique in your environment,
         # because stats will be emitted to statsd with that as part of the stat name.
 
@@ -17,7 +17,7 @@ class ExampleLoggingApp(krux.cli.Application):
         # the default is to print them out to the console; setting a syslog facility
         # means messages will go to syslog with the named facility and called severity;
         # your local syslog config will need to route those messages to a file or remote syslog.
-        super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0')
+        super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0', *args, **kwargs)
 
     def run(self):
         """
