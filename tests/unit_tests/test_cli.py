@@ -16,6 +16,7 @@ from time    import time
 
 import os
 import sys
+import copy
 
 #########################
 # Third Party Libraries #
@@ -298,6 +299,43 @@ class TestApplication(TestCase):
         )
 
         mock_logging.captureWarnings.assert_called_once_with(True)
+
+    def test_args(self):
+        """
+        krux.cli.Application gets args that match sys.argv (minus the name of the executable)
+        """
+        command_line_args = sys.argv[1:]
+        app = cli.Application(name=self.__class__.__name__)
+        _namespace, args = app.parser.parse_known_args()
+        self.assertEqual(args, command_line_args)
+
+
+class OverrideArgsApplication(cli.Application):
+    """
+    Used by TestOverrideArgsApplication.
+    """
+    def __init__(self, *args, **kwargs):
+        super(OverrideArgsApplication, self).__init__(*args, **kwargs)
+
+    def add_cli_arguments(self, parser):
+        super(OverrideArgsApplication, self).add_cli_arguments(parser)
+        group = cli.get_group(parser, 'test_group')
+        group.add_argument('--test-arg')
+
+
+class TestOverrideArgsApplication(TestCase):
+    def test_override_args(self):
+        """
+        krux.cli.Application gets the args we hand it, in lieu of the os.environ args
+        """
+        test_arg = '--test-arg'
+        test_value = 'test_value'
+        test_args = [test_arg, test_value]
+        test_attr = 'test_arg'
+        app = OverrideArgsApplication(name=self.__class__.__name__,
+                                      parser_args=test_args)
+        self.assertEqual(getattr(app.args, test_attr), test_value)
+
 
 ###
 ### Test krux.cli.Application
