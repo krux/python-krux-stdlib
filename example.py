@@ -9,21 +9,26 @@ class ExampleLoggingApp(krux.cli.Application):
       * a command-line option parser
       * a logger
     """
-    def __init__(self, *args, **kwargs):
-        # the 'name' parameter is just a string/name for your script. It should be unique in your environment,
-        # because stats will be emitted to statsd with that as part of the stat name.
-
-        # the syslog_facility parameter being set changes where logs get sent to;
-        # the default is to print them out to the console; setting a syslog facility
-        # means messages will go to syslog with the named facility and called severity;
-        # your local syslog config will need to route those messages to a file or remote syslog.
-
-        # A NOTE ON *args AND **kwargs: Our intent is to capture and pass on the arguments
-        # to parent methods, which want to use them. This is one way. Another way
-        # is to declare the arguments explicitly. There's a software maintenance cost to that, though:
-        # if parameter changes are made to a ancestor method, it may require a change
-        # to the descendant methods.
-        super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0', *args, **kwargs)
+    def __init__(
+        self,
+        name,
+        parser=None,
+        logger=None,
+        lockfile=False,
+        syslog_facility=krux.cli.DEFAULT_LOG_FACILITY,
+        log_to_stdout=True,
+        parser_args=None,
+    ):
+        # The above method signature matches that of the parent, krux.cli.Application.__init__()
+        super(ExampleLoggingApp, self).__init__(
+            name=name,
+            parser=parser,
+            logger=logger,
+            lockfile=lockfile,
+            syslog_facility=syslog_facility,
+            log_to_stdout=log_to_stdout,
+            parser_args=parser_args,
+        )
 
     def run(self):
         """
@@ -36,8 +41,17 @@ class ExampleLoggingApp(krux.cli.Application):
 
 
 def main():
-    # instantiate your application class
-    app = ExampleLoggingApp()
+    # instantiate your application class.
+
+    # the 'name' parameter is just a string/name for your script. It should be unique in your environment,
+    # because stats will be emitted to statsd with that as part of the stat name.
+
+    # the syslog_facility parameter being set changes where logs get sent to;
+    # the default is to print them out to the console; setting a syslog facility
+    # means messages will go to syslog with the named facility and called severity;
+    # your local syslog config will need to route those messages to a file or remote syslog.
+
+    app = ExampleLoggingApp('testloggingapp', syslog_facility='local0')
 
     # app.context() makes sure the exceptions are logged, if any, exit hooks are handled (i.e. lock files),
     # and exit code is set properly.
