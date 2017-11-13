@@ -17,6 +17,12 @@ class ExampleLoggingApp(krux.cli.Application):
         # the default is to print them out to the console; setting a syslog facility
         # means messages will go to syslog with the named facility and called severity;
         # your local syslog config will need to route those messages to a file or remote syslog.
+
+        # A NOTE ON *args AND **kwargs: Our intent is to capture and pass on the arguments
+        # to parent methods, which want to use them. This is one way. Another way
+        # is to declare the arguments explicitly. There's a software maintenance cost to that, though:
+        # if parameter changes are made to a ancestor method, it may require a change
+        # to the descendant methods.
         super(ExampleLoggingApp, self).__init__(name='testloggingapp', syslog_facility='local0', *args, **kwargs)
 
     def run(self):
