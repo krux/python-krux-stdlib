@@ -102,6 +102,7 @@ class Application(object):
         lockfile=False,
         syslog_facility=DEFAULT_LOG_FACILITY,
         log_to_stdout=True,
+        parser_args=None,
     ):
         """
         Wraps :py:class:`object` and sets up CLI argument parsing, stats and
@@ -112,6 +113,9 @@ class Application(object):
 
         :keyword parser: The CLI parser. Defaults to
         :py:func:`cli.get_parser <krux.cli.get_parser>`
+
+        :keyword list parser_args: List of argument strings to be fed to parser, or else None.
+        For testing purposes: Use to override the sys.argv command line arguments.
         """
 
         # note our name
@@ -128,7 +132,7 @@ class Application(object):
         self.add_cli_arguments(self.parser)
 
         # and parse them
-        self.args = self.parser.parse_args()
+        self.args = self.parser.parse_args(args=parser_args)
 
         # the cli facility should over-ride the passed-in syslog facility
         syslog_facility = self.args.syslog_facility
