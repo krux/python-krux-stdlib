@@ -63,17 +63,19 @@ def add_logging_args(parser, stdout_default=True):
 
     :argument parser: parser instance to which the arguments will be added
     """
-    group = get_group(parser=parser, group_name='logging', env_var_prefix=False)
+    group = get_group(parser=parser, group_name='logging')
 
     group.add_argument(
         '--log-level',
         default=DEFAULT_LOG_LEVEL,
         choices=LEVELS.keys(),
+        env_var='LOG_LEVEL',
         help='Verbosity of logging.'
     )
     group.add_argument(
         '--log-file',
         default=None,
+        env_var='LOG_FILE',
         help='Full-qualified path to the log file',
     )
 
@@ -90,6 +92,7 @@ def add_logging_args(parser, stdout_default=True):
     group.add_argument(
         '--syslog-facility',
         default=DEFAULT_LOG_FACILITY,
+        env_var='SYSLOG_FACILITY',
         help='syslog facility to use',
     )
     #
@@ -132,27 +135,31 @@ def add_stats_args(parser):
 
     :argument parser: parser instance to which the arguments will be added
     """
-    group = get_group(parser=parser, group_name='stats', env_var_prefix=False)
+    group = get_group(parser=parser, group_name='stats')
 
     group.add_argument(
         '--stats',
         default=False,
         action='store_true',
+        env_var='STATS',
         help='Enable sending statistics to statsd.'
     )
     group.add_argument(
         '--stats-host',
         default=DEFAULT_STATSD_HOST,
+        env_var='STATS_HOST',
         help='Statsd host to send statistics to.'
     )
     group.add_argument(
         '--stats-port',
         default=DEFAULT_STATSD_PORT,
+        env_var='STATS_PORT',
         help='Statsd port to send statistics to.'
     )
     group.add_argument(
         '--stats-environment',
         default=DEFAULT_STATSD_ENV,
+        env_var='STATS_ENVIRONMENT',
         help='Statsd environment.'
     )
 
@@ -160,11 +167,12 @@ def add_stats_args(parser):
 
 
 def add_lockfile_args(parser):
-    group = get_group(parser=parser, group_name='lockfile', env_var_prefix=False)
+    group = get_group(parser=parser, group_name='lockfile')
 
     group.add_argument(
         '--lock-dir',
         default=DEFAULT_LOCK_DIR,
+        env_var='LOCK_DIR',
         help='Dir where lock files are stored'
     )
 
@@ -227,9 +235,9 @@ class KruxGroup(_ArgumentGroup):
         Creates a wrapper around argparse._ArgumentGroup that handles some help doc automation as well as environment
         variable fall back
 
-        :param env_var_prefix: Prefix to use for the environment variables. If set to None, uses the title
-                               of the _ArgumentGroup that this is wrapping. If set to False, does not add any prefix.
-        :type env_var_prefix: str | bool
+        :param env_var_prefix: Prefix to use for the environment variables. If set to falsey, uses the title
+                               of the _ArgumentGroup that this is wrapping.
+        :type env_var_prefix: str
         :param args: Ordered arguments passed directly to krux.wrapper.Wrapper.__init__()
         :type args: list
         :param kwargs: Keyword arguments passed directly to krux.wrapper.Wrapper.__init__()
@@ -238,20 +246,18 @@ class KruxGroup(_ArgumentGroup):
         # Call to the superclass to bootstrap.
         super(KruxGroup, self).__init__(*args, **kwargs)
 
-        if env_var_prefix is None:
-            self._env_prefix = self.title + '_'
-        elif env_var_prefix is False:
-            self._env_prefix = ''
-        else:
+        if env_var_prefix:
             self._env_prefix = str(env_var_prefix) + '_'
+        else:
+            self._env_prefix = self.title + '_'
 
     def add_argument(self, *args, **kwargs):
         """
         Creates a CLI argument under this group based on the passed parameters.
 
-        :param env_var: Name of the environment variable to use. If set to None or not set, uses the name of
-                        the option and the env_var_prefix passed to the group to deduce a name. If set to False,
-                        does not add any environment variable support.
+        :param env_var: Name of the environment variable to use. If set to False or not
+                        set, does not add any environment variable support. If set to None, uses the name of
+                        the option and the env_var_prefix passed to the group to deduce a name.
         :type env_var: str | bool
         :param add_env_var_help: Whether to add the name of the environment variable to the help text. If set to False
                                  or if env_var is set to False, the help text is not appended.
@@ -267,7 +273,7 @@ class KruxGroup(_ArgumentGroup):
         :rtype: argparse.Action
         """
         # Values that are used exclusively in this override
-        env_var = kwargs.pop('env_var', None)
+        env_var = kwargs.pop('env_var', False)
         add_env_var_help = kwargs.pop('add_env_var_help', True)
         add_default_help = kwargs.pop('add_default_help', True)
 

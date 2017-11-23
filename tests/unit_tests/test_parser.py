@@ -153,12 +153,18 @@ class AddTest(unittest.TestCase):
         self.assertEqual(self._parser, actual)
 
         # Check whether an _ArgumentGroup was successfully created
-        self._parser.add_argument_group.assert_called_once_with(title='logging', env_var_prefix=False)
+        self._parser.add_argument_group.assert_called_once_with(title='logging', env_var_prefix=None)
 
         # Check whether the arguments were correctly created
         add_argument_calls = [
-            call('--log-level', default=DEFAULT_LOG_LEVEL, choices=LEVELS.keys(), help='Verbosity of logging.'),
-            call('--log-file', default=None, help='Full-qualified path to the log file'),
+            call(
+                '--log-level',
+                default=DEFAULT_LOG_LEVEL,
+                choices=LEVELS.keys(),
+                env_var='LOG_LEVEL',
+                help='Verbosity of logging.',
+            ),
+            call('--log-file', default=None, env_var='LOG_FILE', help='Full-qualified path to the log file'),
             call(
                 '--no-syslog-facility',
                 dest='syslog_facility',
@@ -169,7 +175,12 @@ class AddTest(unittest.TestCase):
                 add_default_help=False,
                 help='disable syslog facility',
             ),
-            call('--syslog-facility', default=DEFAULT_LOG_FACILITY, help='syslog facility to use'),
+            call(
+                '--syslog-facility',
+                default=DEFAULT_LOG_FACILITY,
+                env_var='SYSLOG_FACILITY',
+                help='syslog facility to use',
+            ),
             call(
                 '--no-log-to-stdout',
                 dest='log_to_stdout',
@@ -189,8 +200,14 @@ class AddTest(unittest.TestCase):
 
         # Check whether the arguments were correctly created
         add_argument_calls = [
-            call('--log-level', default=DEFAULT_LOG_LEVEL, choices=LEVELS.keys(), help='Verbosity of logging.'),
-            call('--log-file', default=None, help='Full-qualified path to the log file'),
+            call(
+                '--log-level',
+                default=DEFAULT_LOG_LEVEL,
+                choices=LEVELS.keys(),
+                env_var='LOG_LEVEL',
+                help='Verbosity of logging.',
+            ),
+            call('--log-file', default=None, env_var='LOG_FILE', help='Full-qualified path to the log file'),
             call(
                 '--no-syslog-facility',
                 dest='syslog_facility',
@@ -201,7 +218,12 @@ class AddTest(unittest.TestCase):
                 add_default_help=False,
                 help='disable syslog facility',
             ),
-            call('--syslog-facility', default=DEFAULT_LOG_FACILITY, help='syslog facility to use'),
+            call(
+                '--syslog-facility',
+                default=DEFAULT_LOG_FACILITY,
+                env_var='SYSLOG_FACILITY',
+                help='syslog facility to use',
+            ),
             call(
                 '--log-to-stdout',
                 default=False,
@@ -222,14 +244,35 @@ class AddTest(unittest.TestCase):
         self.assertEqual(self._parser, actual)
 
         # Check whether an _ArgumentGroup was successfully created
-        self._parser.add_argument_group.assert_called_once_with(title='stats', env_var_prefix=False)
+        self._parser.add_argument_group.assert_called_once_with(title='stats', env_var_prefix=None)
 
         # Check whether the arguments were correctly created
         add_argument_calls = [
-            call('--stats', default=False, action='store_true', help='Enable sending statistics to statsd.'),
-            call('--stats-host', default=DEFAULT_STATSD_HOST, help='Statsd host to send statistics to.'),
-            call('--stats-port', default=DEFAULT_STATSD_PORT, help='Statsd port to send statistics to.'),
-            call('--stats-environment', default=DEFAULT_STATSD_ENV, help='Statsd environment.'),
+            call(
+                '--stats',
+                default=False,
+                action='store_true',
+                env_var='STATS',
+                help='Enable sending statistics to statsd.',
+            ),
+            call(
+                '--stats-host',
+                default=DEFAULT_STATSD_HOST,
+                env_var='STATS_HOST',
+                help='Statsd host to send statistics to.',
+            ),
+            call(
+                '--stats-port',
+                default=DEFAULT_STATSD_PORT,
+                env_var='STATS_PORT',
+                help='Statsd port to send statistics to.',
+            ),
+            call(
+                '--stats-environment',
+                default=DEFAULT_STATSD_ENV,
+                env_var='STATS_ENVIRONMENT',
+                help='Statsd environment.',
+            ),
         ]
         self.assertEqual(add_argument_calls, self._group.add_argument.call_args_list)
 
@@ -243,11 +286,11 @@ class AddTest(unittest.TestCase):
         self.assertEqual(self._parser, actual)
 
         # Check whether an _ArgumentGroup was successfully created
-        self._parser.add_argument_group.assert_called_once_with(title='lockfile', env_var_prefix=False)
+        self._parser.add_argument_group.assert_called_once_with(title='lockfile', env_var_prefix=None)
 
         # Check whether the arguments were correctly created
         add_argument_calls = [
-            call('--lock-dir', default=DEFAULT_LOCK_DIR, help='Dir where lock files are stored'),
+            call('--lock-dir', default=DEFAULT_LOCK_DIR, env_var='LOCK_DIR', help='Dir where lock files are stored'),
         ]
         self.assertEqual(add_argument_calls, self._group.add_argument.call_args_list)
 
@@ -313,15 +356,6 @@ class KruxGroupTest(unittest.TestCase):
         # Check whether the _env_prefix is correct
         self.assertEqual(env_var_prefix + '_', self._group._env_prefix)
 
-    def test_init_false_prefix(self):
-        """
-        krux.parser.KruxGroup.__init__() correctly omits the prefix
-        """
-        self._group = KruxGroup(env_var_prefix=False, title=self.FAKE_TITLE, container=self._parser)
-
-        # Check whether the _env_prefix is correct
-        self.assertEqual('', self._group._env_prefix)
-
     @patch('krux.parser._ArgumentGroup.add_argument')
     @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
     def test_add_argument_optional(self, mock_add_argument):
@@ -336,10 +370,9 @@ class KruxGroupTest(unittest.TestCase):
 
         mock_add_argument.assert_called_once_with(
             self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
-            default=self.ENVIRONMENT_VALUE,
+            default=self.DEFAULT_VALUE,
             help=' '.join([
                 self.HELP_TEXT,
-                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
                 KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
             ]),
         )
@@ -354,6 +387,7 @@ class KruxGroupTest(unittest.TestCase):
             self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
             default=self.DEFAULT_VALUE,
             help=self.HELP_TEXT,
+            env_var=None,
         )
 
         mock_add_argument.assert_called_once_with(
@@ -362,28 +396,6 @@ class KruxGroupTest(unittest.TestCase):
             help=' '.join([
                 self.HELP_TEXT,
                 KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
-                KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
-            ]),
-        )
-
-    @patch('krux.parser._ArgumentGroup.add_argument')
-    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
-    def test_add_argument_false_env_var(self, mock_add_argument):
-        """
-        krux.parser.KruxGroup.add_argument() correctly omits environment variable support if disabled
-        """
-        self._group.add_argument(
-            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
-            default=self.DEFAULT_VALUE,
-            help=self.HELP_TEXT,
-            env_var=False,
-        )
-
-        mock_add_argument.assert_called_once_with(
-            self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
-            default=self.DEFAULT_VALUE,
-            help=' '.join([
-                self.HELP_TEXT,
                 KruxGroup.HELP_DEFAULT.format(default=self.DEFAULT_VALUE),
             ]),
         )
@@ -423,6 +435,7 @@ class KruxGroupTest(unittest.TestCase):
             self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
             default=self.DEFAULT_VALUE,
             help=self.HELP_TEXT,
+            env_var=None,
             add_env_var_help=False,
         )
 
@@ -436,7 +449,6 @@ class KruxGroupTest(unittest.TestCase):
         )
 
     @patch('krux.parser._ArgumentGroup.add_argument')
-    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
     def test_add_argument_no_default_help(self, mock_add_argument):
         """
         krux.parser.KruxGroup.add_argument() correctly omits default help text if disabled
@@ -450,15 +462,13 @@ class KruxGroupTest(unittest.TestCase):
 
         mock_add_argument.assert_called_once_with(
             self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
-            default=self.ENVIRONMENT_VALUE,
+            default=self.DEFAULT_VALUE,
             help=' '.join([
                 self.HELP_TEXT,
-                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
             ]),
         )
 
     @patch('krux.parser._ArgumentGroup.add_argument')
-    @patch.dict('krux.parser.environ', clear=True, values={ENVIRONMENT_KEY: ENVIRONMENT_VALUE})
     def test_add_argument_existing_default_help(self, mock_add_argument):
         """
         krux.parser.KruxGroup.add_argument() correctly omits default help text if already existing
@@ -472,10 +482,9 @@ class KruxGroupTest(unittest.TestCase):
 
         mock_add_argument.assert_called_once_with(
             self.OPTIONAL_ARGUMENT, self.OPTIONAL_ARGUMENT_SECONDARY,
-            default=self.ENVIRONMENT_VALUE,
+            default=self.DEFAULT_VALUE,
             help=' '.join([
                 self.HELP_TEXT + existing,
-                KruxGroup.HELP_ENV_VAR.format(key=self.ENVIRONMENT_KEY),
             ]),
         )
 
@@ -499,6 +508,7 @@ class KruxGroupTest(unittest.TestCase):
                 self.OPTIONAL_ARGUMENT_SECONDARY,
                 default=self.DEFAULT_VALUE,
                 help=self.HELP_TEXT,
+                env_var=None,
             )
 
         self.assertEqual(
@@ -517,6 +527,7 @@ class KruxGroupTest(unittest.TestCase):
                 '--',
                 default=self.DEFAULT_VALUE,
                 help=self.HELP_TEXT,
+                env_var=None,
             )
 
         self.assertEqual('You must provide a valid name for the option', str(context.exception))
