@@ -64,7 +64,10 @@ class Wrapper(Object):
         """
         self._logger.debug("Attribute %s is not defined directly in this class. Looking up the wrapped object", name)
 
-        # GOTCHA: This will throw AttributeError if name is not defined in self._wrapped. This is intentional.
+        # GOTCHA: This will throw AttributeError if name is not defined in self._wrapped. If the code got here, that
+        #         means there is no extra code added around self._wrapped with the attribute named `name`.
+        #         If self._wrapped also does not have an attribute named `name`, then it should fail with the same
+        #         exception as if you did self._wrapped.`name`. Thus, the error is purposely not handled here.
         value = getattr(self._wrapped, name)
 
         if callable(value):
