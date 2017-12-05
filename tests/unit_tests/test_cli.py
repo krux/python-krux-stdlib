@@ -46,7 +46,7 @@ def test_get_new_group():
 
     group = cli.get_group(mock_parser, name)
 
-    mock_parser.add_argument_group.assert_called_once_with(name)
+    mock_parser.add_argument_group.assert_called_once_with(title=name, env_var_prefix=None)
     assert_equal(group, name)
 
 
