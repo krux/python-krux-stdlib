@@ -13,11 +13,6 @@ kruxstatsd==0.3.1
 # For CLI arguments
 argparse==1.4.0
 
-# For krux.tornado
-tornado==3.0.1
-simplejson==3.11.1
-GitPython==2.0.8
-
 # For lockfiles in CLI
 lockfile==0.12.2
 
@@ -50,7 +45,3 @@ urllib3==1.22
 
 # From kruxstatsd
 statsd==3.2.1
-
-# From GitPython
-gitdb==0.6.4
-smmap==0.9.0
