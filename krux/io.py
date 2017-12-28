@@ -52,8 +52,10 @@ import krux.stats
 
 RUN_COMMAND_EXCEPTION_EXIT_CODE = 256
 
-class RunCmdError(StandardError):
+
+class RunCmdError(Exception):
     pass
+
 
 class IORunCmd(object):
     """
@@ -155,7 +157,7 @@ class IORunCmd(object):
             return True
 
         ### The command failed
-        except Exception, err:
+        except Exception as err:
             stats.incr('error.run_cmd')
             log.critical('Command failed: %s', err)
 
@@ -234,16 +236,13 @@ def main():
 
     cmd = io.run_cmd( command = "false", raise_exception = False )
 
-    print cmd.ok
-    print cmd.returncode
-    print cmd.stdout
-    print cmd.stderr
+    print(cmd.ok)
+    print(cmd.returncode)
+    print(cmd.stdout)
+    print(cmd.stderr)
 
 
 
 ### Run the application stand alone
 if __name__ == '__main__':
     main()
-
-
-

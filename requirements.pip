@@ -19,6 +19,9 @@ lockfile==0.12.2
 # Python 3's subprocess for newer features
 subprocess32==3.2.7
 
+# Python 2-to-3 utility library
+future == 0.16.0
+
 # Transitive libraries
 # This is needed so there are no version conflicts when
 # one downstream library does NOT specify the version it wants,
