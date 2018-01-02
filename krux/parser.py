@@ -309,7 +309,15 @@ class KruxGroup(_ArgumentGroup):
                 key = env_var
 
             # Override the default value to use the environment variable
-            kwargs['default'] = environ.get(key=key, failobj=kwargs.get('default', None))
+            #
+            # @plathrop 2017.12.28-15:13: This used to be:
+            #
+            # kwargs['default'] = environ.get(key=key, failobj=kwargs.get('default', None))
+            #
+            # However, in python 3, they renamed the 'failobj' keyword
+            # argument. To make this code compatible, the simplest
+            # method is to pass in the arguments positionally.
+            kwargs['default'] = environ.get(key, kwargs.get('default', None))
 
             # Add the environment variable to the help text
             if add_env_var_help:

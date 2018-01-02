@@ -16,7 +16,7 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # We use the version to construct the DOWNLOAD_URL.
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
-REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'tornado', 'simplejson', 'GitPython', 'lockfile']
+REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'lockfile', 'future']
 if os.name == 'posix' and sys.version_info[0] < 3:
     # For Python 2.*, install the backported subprocess
     REQUIREMENTS.append('subprocess32')

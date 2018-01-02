@@ -39,9 +39,6 @@ from __future__ import absolute_import
 from functools import partial
 from contextlib import contextmanager
 import sys
-### This is still here in case something else is using it via an import.
-### This should be removed.
-from sys import exit
 
 import logging
 import os.path
@@ -51,6 +48,7 @@ import __main__
 # Third Party Libraries #
 #########################
 from lockfile import FileLock, LockError, UnlockError
+from future.utils import raise_with_traceback
 
 ######################
 # Internal Libraries #
@@ -67,11 +65,11 @@ from krux.parser import get_group, get_parser
 ####################
 
 
-class ApplicationError(StandardError):
+class ApplicationError(Exception):
     pass
 
 
-class CriticalApplicationError(StandardError):
+class CriticalApplicationError(Exception):
     """
     This error is only raised if the application is expected to exit.
     It should never be caught.
@@ -268,15 +266,9 @@ class Application(object):
         This logs the error, releases any lock files and throws an exception.
         The expectation is that the application exits after this.
         """
-
         self.logger.critical(err)
         self._run_exit_hooks()
-
-        exc_info = sys.exc_info()
-        if exc_info[1] is err:
-            raise CriticalApplicationError, CriticalApplicationError(exc_info[1]), exc_info[2]
-        else:
-            raise CriticalApplicationError(err)
+        raise_with_traceback(CriticalApplicationError(err))
 
     @contextmanager
     def context(self):
