@@ -42,7 +42,7 @@ setup(
     url=REPO_URL,
     download_url=DOWNLOAD_URL,
     license='License :: OSI Approved :: MIT License',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     install_requires=REQUIREMENTS,
     tests_require=TEST_REQUIREMENTS,
     extras_require={
