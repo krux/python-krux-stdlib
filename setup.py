@@ -30,10 +30,8 @@ LINT_REQUIREMENTS = ['flake8']
 setup(
     name='krux-stdlib',
     version=VERSION,
-    author='Paul Lathrop',
-    author_email='paul@krux.com',
-    maintainer='Paul Lathrop',
-    maintainer_email='paul@krux.com',
+    author='Salesforce DMP Platform Engineering',
+    author_email='krux-pe@salesforce.com',
     description='Standard library of python modules used at Krux.',
     long_description="""
     Standard library of python modules used at Krux. These modules are written
