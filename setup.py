@@ -16,10 +16,16 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # We use the version to construct the DOWNLOAD_URL.
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
-REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'lockfile', 'future']
+REQUIREMENTS = ['pystache', 'kruxstatsd', 'argparse', 'lockfile', 'future']
 if os.name == 'posix' and sys.version_info[0] < 3:
     # For Python 2.*, install the backported subprocess
     REQUIREMENTS.append('subprocess32')
+
+DOC_REQUIREMENTS = ['Sphinx']
+
+TEST_REQUIREMENTS = ['coverage', 'mock', 'nose']
+
+LINT_REQUIREMENTS = ['flake8']
 
 setup(
     name='krux-stdlib',
@@ -38,10 +44,10 @@ setup(
     license='License :: OSI Approved :: MIT License',
     packages=find_packages(),
     install_requires=REQUIREMENTS,
-    tests_require=[
-        'coverage',
-        'mock',
-        'nose',
-    ],
+    tests_require=TEST_REQUIREMENTS,
+    extras_require={
+        'doc': DOC_REQUIREMENTS,
+        'dev': TEST_REQUIREMENTS + LINT_REQUIREMENTS,
+    },
     python_requires='<4',
 )
