@@ -21,8 +21,6 @@ if os.name == 'posix' and sys.version_info[0] < 3:
     # For Python 2.*, install the backported subprocess
     REQUIREMENTS.append('subprocess32')
 
-DOC_REQUIREMENTS = ['Sphinx']
-
 TEST_REQUIREMENTS = ['coverage', 'mock', 'nose']
 
 LINT_REQUIREMENTS = ['flake8']
@@ -44,7 +42,6 @@ setup(
     install_requires=REQUIREMENTS,
     tests_require=TEST_REQUIREMENTS,
     extras_require={
-        'doc': DOC_REQUIREMENTS,
         'dev': TEST_REQUIREMENTS + LINT_REQUIREMENTS,
     },
     python_requires='<4',
