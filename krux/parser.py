@@ -228,6 +228,8 @@ class KruxParser(ArgumentParser):
         description = args[1] if len(args) > 1 else kwargs.pop('description', None)
         env_var_prefix = kwargs.pop('env_var_prefix', False)
 
+        # phan 2019-02-13: In order to use `KruxGroup` instead of `_ArgumentGroup`, I am purposely shadowing the super
+        #                  class' `add_argument_group()` method. All that work is copied into here.
         group = KruxGroup(container=self, title=title, description=description, env_var_prefix=env_var_prefix, **kwargs)
         self._action_groups.append(group)
         return group
