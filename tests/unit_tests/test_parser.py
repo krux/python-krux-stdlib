@@ -324,12 +324,12 @@ class KruxParserTest(unittest.TestCase):
         krux.parser.KruxParser.add_argument_group() correctly creates and returns a KruxGroup object when positional arguments are used
         """
 
-        group = self._parser.add_argument_group(self.FAKE_TITLE, self.FAKE_DESCRIPTION, self.FAKE_ENV_VAR_PREFIX)
+        group = self._parser.add_argument_group(self.FAKE_TITLE, self.FAKE_DESCRIPTION)
 
         # Check whether the return value is correct
         self.assertEqual(self.FAKE_TITLE, group.title)
         self.assertEqual(self.FAKE_DESCRIPTION, group.description)
-        self.assertEqual(self.FAKE_ENV_VAR_PREFIX + '_', group._env_prefix)
+        self.assertEqual(self.FAKE_TITLE + '_', group._env_prefix)
 
         # Check whether the KruxGroup object was added to the list
         self.assertIn(group, self._parser._action_groups)
