@@ -296,31 +296,43 @@ class AddTest(unittest.TestCase):
 
 
 class KruxParserTest(unittest.TestCase):
+    FAKE_TITLE = 'fake-title'
+    FAKE_DESCRIPTION = 'fake-description'
+    FAKE_ENV_VAR_PREFIX = 'FAKE'
+
     def setUp(self):
         self._parser = KruxParser()
 
-    @patch('krux.parser.KruxGroup')
-    def test_add_argument_group(self, mock_group_class):
+    def test_add_argument_group_keyword(self):
         """
-        krux.parser.KruxParser.add_argument_group() correctly creates and returns a KruxGroup object
+        krux.parser.KruxParser.add_argument_group() correctly creates and returns a KruxGroup object when keyword arguments are used
         """
-        env_var_prefix = False
-        title = 'fake-title'
-
-        group = self._parser.add_argument_group(env_var_prefix=env_var_prefix, title=title)
-
-        # Check whether the return value is correct
-        self.assertEqual(mock_group_class.return_value, group)
-
-        # Check whether the KruxGroup object was created correctly
-        mock_group_class.assert_called_once_with(
-            env_var_prefix=env_var_prefix,
-            container=self._parser,
-            title=title,
+        group = self._parser.add_argument_group(
+            env_var_prefix=self.FAKE_ENV_VAR_PREFIX, title=self.FAKE_TITLE, description=self.FAKE_DESCRIPTION
         )
 
+        # Check whether the return value is correct
+        self.assertEqual(self.FAKE_TITLE, group.title)
+        self.assertEqual(self.FAKE_DESCRIPTION, group.description)
+        self.assertEqual(self.FAKE_ENV_VAR_PREFIX + '_', group._env_prefix)
+
         # Check whether the KruxGroup object was added to the list
-        self.assertIn(mock_group_class.return_value, self._parser._action_groups)
+        self.assertIn(group, self._parser._action_groups)
+
+    def test_add_argument_group_positional(self):
+        """
+        krux.parser.KruxParser.add_argument_group() correctly creates and returns a KruxGroup object when positional arguments are used
+        """
+
+        group = self._parser.add_argument_group(self.FAKE_TITLE, self.FAKE_DESCRIPTION)
+
+        # Check whether the return value is correct
+        self.assertEqual(self.FAKE_TITLE, group.title)
+        self.assertEqual(self.FAKE_DESCRIPTION, group.description)
+        self.assertEqual(self.FAKE_TITLE + '_', group._env_prefix)
+
+        # Check whether the KruxGroup object was added to the list
+        self.assertIn(group, self._parser._action_groups)
 
 
 class KruxGroupTest(unittest.TestCase):

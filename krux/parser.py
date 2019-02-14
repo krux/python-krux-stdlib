@@ -205,14 +205,14 @@ def get_group(parser, group_name, env_var_prefix=None):
 
 
 class KruxParser(ArgumentParser):
-    def add_argument_group(self, env_var_prefix, *args, **kwargs):
+    def add_argument_group(self, *args, **kwargs):
         """
         Creates a KruxGroup object that wraps the argparse._ArgumentGroup and creates a nice group of arguments
         that should be considered together.
 
         :param env_var_prefix: Prefix to use for the environment variables support of this group. If set to None,
-                               uses the title of the _ArgumentGroup that this is wrapping. If set to False,
-                               does not add any prefix.
+                               uses the title of the _ArgumentGroup that this is wrapping. If not set or set to False,
+                               does not add any prefix. This argument MUST be a keyword argument.
         :type env_var_prefix: str | bool
         :param args: Ordered arguments passed directly to argparse._ArgumentGroup.__init__()
         :type args: list
@@ -221,7 +221,16 @@ class KruxParser(ArgumentParser):
         :return: The created KruxGroup object
         :rtype: krux.parser.KruxGroup
         """
-        group = KruxGroup(env_var_prefix=env_var_prefix, container=self, *args, **kwargs)
+        # XXX: `title` and `description` are `_ArgumentGroup.__init__()`'s arguments. Sometimes, they come in as
+        #      positional arguments. `KruxParser` must support that behaviour. Thus, we merge the two behaviours here.
+        # XXX: Use `dict.pop()` so that we don't pass these twice.
+        title = args[0] if len(args) > 0 else kwargs.pop('title', None)
+        description = args[1] if len(args) > 1 else kwargs.pop('description', None)
+        env_var_prefix = kwargs.pop('env_var_prefix', False)
+
+        # phan 2019-02-13: In order to use `KruxGroup` instead of `_ArgumentGroup`, I am purposely shadowing the super
+        #                  class' `add_argument_group()` method. All that work is copied into here.
+        group = KruxGroup(container=self, title=title, description=description, env_var_prefix=env_var_prefix, **kwargs)
         self._action_groups.append(group)
         return group
 
@@ -230,7 +239,7 @@ class KruxGroup(_ArgumentGroup):
     HELP_ENV_VAR = "(env: {key})"
     HELP_DEFAULT = "(default: {default})"
 
-    def __init__(self, env_var_prefix=None, *args, **kwargs):
+    def __init__(self, env_var_prefix=False, **kwargs):
         """
         Creates a wrapper around argparse._ArgumentGroup that handles some help doc automation as well as environment
         variable fall back
@@ -244,7 +253,7 @@ class KruxGroup(_ArgumentGroup):
         :type kwargs: dict
         """
         # Call to the superclass to bootstrap.
-        super(KruxGroup, self).__init__(*args, **kwargs)
+        super(KruxGroup, self).__init__(**kwargs)
 
         if env_var_prefix:
             self._env_prefix = str(env_var_prefix) + '_'
