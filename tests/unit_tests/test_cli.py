@@ -78,15 +78,15 @@ def test_get_parser():
     parser = cli.get_parser()
     assert_true(parser)
 
+
 def test_get_script_name():
     """
     Test getting script name from the invoking script
     """
     name = cli.get_script_name()
 
-    ### these tests are invoked as 'nosetests --options...', so
-    ### that's the name of the 'script'
-    assert_equal(name, 'nosetests')
+    assert_equal(name, os.path.basename(sys.argv[0]))
+
 
 class TestApplication(TestCase):
 
