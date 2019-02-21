@@ -40,42 +40,45 @@ def get_stats(
 
     :argument prefix: The string prepended to all stats sent to Statsd.
 
-    :keyword client: The StatsClient class to use. Defaults to 'True' which
-    signals the use of 'kruxstatsd.StatsClient'. 'False' or 'None' will
-    signal the use of :py:class:`stats.DummyStatsClient
-    <krux.stats.DummyStatsClient>`.  Any other value is interpreted as a
-    custom Stats class.
+    :parameter client: The StatsClient class to use. Defaults to 'True' which
+    signals the use of 'statsd.StatsClient'. 'False' or 'None' will
+    signal the use of :py:class:`stats.DummyStatsClient <krux.stats.DummyStatsClient>`.
+    `legacy` signals the use of kruxstatsd.StatsClient. Any other value is invalid.
 
-    :keyword env: The Statsd environment to report the stat in. Defaults to
+    :parameter env: The Statsd environment to report the stat in. Defaults to
     :py:data:`krux.constants.DEFAULT_STATSD_ENV`
 
-    :keyword host: The Statsd host to connect to. Defaults to
+    :parameter host: The Statsd host to connect to. Defaults to
     :py:data:`krux.constants.DEFAULT_STATSD_HOST`
 
-    :keyword env: The Statsd port to connect to. Defaults to
+    :parameter port: The Statsd port to connect to. Defaults to
     :py:data:`krux.constants.DEFAULT_STATSD_PORT`
     """
 
-    stats = {
+    stats_client = {
         # You want the default implementation
-        True:   kruxstatsd.StatsClient,
+        True:   statsd.StatsClient,
+        # You want the "legacy" mode, with environment and hostname added to stat names
+        'legacy': kruxstatsd.StatsClient,
         # You don't want stats, use dummy class
         False:  DummyStatsClient,
         None:   DummyStatsClient,
         # Default: you have an object that
         # implements the StatsClient interface
-    }.get(client, lambda **kw: client)(
-        prefix=prefix,
-        env=env,
-        host=host,
-        port=port
-    )
+    }.get(client)
 
-    # You passed something we can't deal with
-    assert hasattr(stats, 'incr') and hasattr(stats, 'timer'), \
-        "Unsupported value for 'client': %s" % client
+    # You passed a value for `client` we can't handle
+    assert stats_client is not None, "Unsupported value for 'client': %s" % client
 
-    return stats
+    stats_client_args = {
+        'prefix': prefix,
+        'host': host,
+        'port': port,
+    }
+    if client == 'legacy':
+        stats_client_args['env'] = env
+
+    return stats_client(**stats_client_args)
 
 
 class DummyStatsClient(object):
