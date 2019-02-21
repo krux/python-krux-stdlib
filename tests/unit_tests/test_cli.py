@@ -257,7 +257,7 @@ class TestApplication(TestCase):
         with self.assertRaises(cli.CriticalApplicationError):
             try:
                 raise StandardError('Test Error')
-            except Exception, e:
+            except Exception as e:
                 app.raise_critical_error(e)
 
         mock_hook.assert_called_once_with()
