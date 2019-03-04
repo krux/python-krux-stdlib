@@ -37,7 +37,7 @@ def test_get_stats():
 
 def test_get_dummy_stats():
     """
-    Test getting a fakse stats object from krux.stats
+    Test getting a false stats object from krux.stats
     """
     stats = krux.stats.get_stats(prefix='dummy_app', client=False)
 
@@ -51,7 +51,7 @@ def test_get_legacy_client():
     Test that a 'legacy' stats client is returned when requested
     """
 
-    stats = krux.stats.get_stats(prefix='dummy_app', client='legacy')
+    stats = krux.stats.get_stats(prefix='dummy_app', legacy_names=True)
     assert_true(isinstance(stats, kruxstatsd.StatsClient))
 
 
