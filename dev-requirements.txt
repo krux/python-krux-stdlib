@@ -1,5 +1,5 @@
 # Include base requirements
--r requirements.pip
+-r requirements.txt
 
 # For unit tests
 coverage==4.4.1
