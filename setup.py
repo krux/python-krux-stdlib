@@ -43,4 +43,5 @@ setup(
         'mock',
         'nose',
     ],
+    python_requires='~=2.7, ~=3.6',
 )
