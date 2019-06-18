@@ -15,6 +15,7 @@ import unittest
 #########################
 # Third Party Libraries #
 #########################
+from builtins import object
 from nose.tools import assert_false, assert_true
 
 ######################

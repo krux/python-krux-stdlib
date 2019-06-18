@@ -13,6 +13,7 @@ import unittest
 # Third party libraries
 #
 from mock import MagicMock, patch, call
+from builtins import str
 from argparse import _ArgumentGroup, ArgumentParser
 
 #
@@ -160,7 +161,7 @@ class AddTest(unittest.TestCase):
             call(
                 '--log-level',
                 default=DEFAULT_LOG_LEVEL,
-                choices=LEVELS.keys(),
+                choices=list(LEVELS.keys()),
                 env_var='LOG_LEVEL',
                 help='Verbosity of logging.',
             ),
@@ -203,7 +204,7 @@ class AddTest(unittest.TestCase):
             call(
                 '--log-level',
                 default=DEFAULT_LOG_LEVEL,
-                choices=LEVELS.keys(),
+                choices=list(LEVELS.keys()),
                 env_var='LOG_LEVEL',
                 help='Verbosity of logging.',
             ),

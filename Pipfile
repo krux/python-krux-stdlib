@@ -1,0 +1,27 @@
+[[source]]
+# Krux Free & Open Source Software (FOSS)
+url = "https://staticfiles.krxd.net/foss/pypi/"
+verify_ssl = true
+name = "kruxfoss"
+
+[[source]]
+# PyPi Repository
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pystache = { version="==0.5.4", index="pypi" }
+kruxstatsd = { version="==0.3.6", index="kruxfoss" }
+argparse = { version="==1.4.0", index="pypi" }
+lockfile = { version="==0.12.2", index="pypi" }
+future = { version="==0.17.1", index="pypi" }
+Sphinx = { version="==1.8.5", index="pypi" }
+
+[dev-packages]
+coverage = { version="*", index="pypi" }
+mock = { version="*", index="pypi" }
+nose = { version="*", index="pypi" }
+
+[requires]
+python_version = "3.6"

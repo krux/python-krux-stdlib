@@ -13,9 +13,8 @@ __author__ = 'Jos Boumans'
 # Third Party Libraries #
 #########################
 
-from mock       import patch, call
+from mock import patch
 from nose.tools import assert_true
-from pprint     import pprint
 
 ######################
 # Internal Libraries #

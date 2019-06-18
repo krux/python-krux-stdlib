@@ -20,16 +20,15 @@ from abc import ABCMeta
 
 from krux.logging import get_logger
 from krux.stats import get_stats
+from future.utils import with_metaclass
 
 
-class Object(object):
+class Object(with_metaclass(ABCMeta, object)):
     """
     An abstract class to handle the common Krux coding pattern
 
     .. seealso::  https://docs.python.org/2/library/abc.html
     """
-
-    __metaclass__ = ABCMeta
 
     def __init__(self, name=None, logger=None, stats=None):
         """

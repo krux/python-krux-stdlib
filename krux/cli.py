@@ -36,6 +36,7 @@ Usage::
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+from builtins import object
 from functools import partial
 from contextlib import contextmanager
 import sys

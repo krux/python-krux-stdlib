@@ -12,6 +12,7 @@ from os import environ
 #
 # Third party libraries
 #
+from builtins import next, str
 from argparse import ArgumentParser, _ArgumentGroup
 
 #
@@ -68,7 +69,7 @@ def add_logging_args(parser, stdout_default=True):
     group.add_argument(
         '--log-level',
         default=DEFAULT_LOG_LEVEL,
-        choices=LEVELS.keys(),
+        choices=list(LEVELS.keys()),
         env_var='LOG_LEVEL',
         help='Verbosity of logging.'
     )
@@ -246,6 +247,7 @@ class KruxGroup(_ArgumentGroup):
 
         :param env_var_prefix: Prefix to use for the environment variables. If set to falsey, uses the title
                                of the _ArgumentGroup that this is wrapping.
+
         :type env_var_prefix: str
         :param args: Ordered arguments passed directly to krux.wrapper.Wrapper.__init__()
         :type args: list

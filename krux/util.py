@@ -10,10 +10,12 @@ Miscellaneous utilities that don't have a better home.
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+from __future__ import division
 
 #########################
 # Third Party Libraries #
 #########################
+from past.utils import old_div
 
 ######################
 # Internal Libraries #
@@ -54,7 +56,7 @@ def divide_or_zero(numerator, denominator, default=None):
     """
     if denominator == 0:
         return default
-    return numerator / denominator
+    return old_div(numerator, denominator)
 
 
 def flatten(lst):

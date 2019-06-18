@@ -14,6 +14,7 @@ import unittest
 # Third party libraries
 #
 
+from builtins import object
 from mock import MagicMock, call
 
 #
