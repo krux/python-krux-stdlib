@@ -24,6 +24,9 @@ Usage::
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+from __future__ import print_function
+from builtins import object
+from past.builtins import basestring
 import shlex
 import signal
 import sys
@@ -76,7 +79,7 @@ class IORunCmd(object):
         self.stderr     = [ ]
         self.exception  = None
 
-    def run(self, command, filters = [], timeout = None, timeout_terminate_signal=signal.SIGTERM):
+    def run(self, command, filters=None, timeout=None, timeout_terminate_signal=signal.SIGTERM):
         log     = self.___logger
         stats   = self.___stats
 
@@ -89,12 +92,16 @@ class IORunCmd(object):
         def is_regex(thing):
             return hasattr(thing, 'pattern') and hasmethod(thing, 'search')
 
-        filters = [ is_regex(f) and f or re.compile(f) for f in filters ]
+        if filters:
+            filters = [is_regex(f) and f or re.compile(f) for f in filters]
+        else:
+            filters = []
 
         log.debug('Applying output filters: %s' % [r.pattern for r in filters])
 
         # if the command is a string, split it using shlex; which correctly handles quoted args like:
         #  cat "/var/log/foo bar.log" /var/log/baz\ .log
+        log.debug('command isinstance basestring: %s', isinstance(command, basestring))
         if isinstance(command, basestring):
             command = shlex.split(command)
 
@@ -129,12 +136,13 @@ class IORunCmd(object):
                 'Command errors': [ log.warning,    stderr,         self.stderr ],
             }
 
-            for label, outputs in mapping.iteritems():
+            for label, outputs in list(mapping.items()):
 
                 ### there was output
                 if len(outputs[1]):
 
-                    for s in outputs[1].splitlines():
+                    for b in outputs[1].splitlines():
+                        s = b.decode("utf-8")
                         ignore = False
 
                         for r in filters:
@@ -142,7 +150,6 @@ class IORunCmd(object):
                             if r.search(s):
                                 log.debug('line "%s" matches "%s"' % (s, r.pattern))
                                 ignore = True
-
                         ### not filtered - store the filtered output in the object,
                         ### so caller can inspect them
                         ignore or outputs[2].append(s)

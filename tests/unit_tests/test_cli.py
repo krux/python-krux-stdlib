@@ -16,20 +16,19 @@ from time    import time
 
 import os
 import sys
-import copy
 
 #########################
 # Third Party Libraries #
 #########################
-from argparse   import ArgumentParser, Namespace
-from mock       import MagicMock, patch
+from argparse import ArgumentParser, Namespace
+from builtins import str
+from mock import MagicMock, patch
 from nose.tools import assert_equal, assert_true
 
 ######################
 # Internal Libraries #
 ######################
 from krux.stats     import DummyStatsClient
-from krux.constants import DEFAULT_LOCK_DIR
 from krux.logging   import DEFAULT_LOG_LEVEL
 
 import krux.cli as cli
@@ -90,13 +89,14 @@ def test_get_script_name():
 
 class TestApplication(TestCase):
 
-    def _get_parser(self, args=[]):
+    def _get_parser(self, args=None):
         """
         Returns a mock parser with the given arguments set
 
         :param args: :py:class:`list` List of str CLI arguments (i.e. ['--log-level', 'debug', '--log-file', 'foo.log'])
         """
-
+        if not args:
+            args = []
         # Get the argparse namespace object with the given args
         parser = cli.get_parser()
         namespace = parser.parse_args(args)
@@ -254,14 +254,15 @@ class TestApplication(TestCase):
         mock_hook = MagicMock(return_value=True)
         app.add_exit_hook(mock_hook)
 
+        _e = RuntimeError('Test Error')
         with self.assertRaises(cli.CriticalApplicationError):
             try:
-                raise StandardError('Test Error')
+                raise _e
             except Exception as e:
                 app.raise_critical_error(e)
 
         mock_hook.assert_called_once_with()
-        mock_logger.critical.assert_called_once_with(e)
+        mock_logger.critical.assert_called_once_with(_e)
 
     @patch('krux.cli.sys.exit')
     def test_context_success(self, mock_exit):
@@ -282,9 +283,9 @@ class TestApplication(TestCase):
         mock_hook = MagicMock(return_value=True)
         self.app.add_exit_hook(mock_hook)
 
-        with self.assertRaises(StandardError):
+        with self.assertRaises(Exception):
             with self.app.context():
-                raise StandardError('Test Error')
+                raise Exception('Test Error')
 
         mock_hook.assert_called_once_with()
 

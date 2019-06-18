@@ -12,6 +12,7 @@ from abc import ABCMeta
 #
 # Third party libraries
 #
+from future.utils import with_metaclass
 
 #
 # Internal libraries
@@ -19,10 +20,8 @@ from abc import ABCMeta
 from krux.object import Object
 
 
-class Wrapper(Object):
+class Wrapper(with_metaclass(ABCMeta, Object)):
     # Wrapper is an abstract class and not to be instantiated directly. It should be used by being inherited
-    __metaclass__ = ABCMeta
-
     def __init__(self, wrapped, *args, **kwargs):
         # Call to the superclass to bootstrap.
         super(Wrapper, self).__init__(*args, **kwargs)

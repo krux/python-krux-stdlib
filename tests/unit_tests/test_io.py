@@ -13,17 +13,22 @@ from unittest import TestCase
 from logging import Logger
 
 import re
-import shlex
 import shutil
 import tempfile
 import signal
+import os
+import sys
 
 #########################
 # Third Party Libraries #
 #########################
 from nose.tools import assert_equal, assert_true, assert_false, raises
 from mock import MagicMock, patch, call
-import subprocess32
+if os.name == 'posix' and sys.version_info[0] < 3:
+    # For Python 2.*, use the backported subprocess
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 ######################
 # Internal Libraries #
@@ -137,7 +142,7 @@ class TestApplication(TestCase):
         )
 
         # Mocking the subprocess module
-        timeout_error = subprocess32.TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND)
+        timeout_error = subprocess.TimeoutExpired(self.TIMEOUT_COMMAND, self.TIMEOUT_SECOND)
         mock_process = MagicMock(
             communicate=MagicMock(
                 side_effect=[timeout_error, ('', '')]
@@ -158,7 +163,7 @@ class TestApplication(TestCase):
             # Check to make sure the command has failed with expected exception
             assert_false(cmd.ok)
             assert_true(cmd.exception)
-            assert_true(isinstance(cmd.exception, subprocess32.TimeoutExpired))
+            assert_true(isinstance(cmd.exception, subprocess.TimeoutExpired))
             assert_equal(cmd.returncode, krux.io.RUN_COMMAND_EXCEPTION_EXIT_CODE)
 
         # Check to make sure error handling is done correctly and process is sent the given signal

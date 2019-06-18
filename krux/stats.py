@@ -15,12 +15,13 @@ from contextlib import contextmanager
 #########################
 # Third Party Libraries #
 #########################
+from builtins import object
 import statsd       # for the dummy client to wrap the callables
-import kruxstatsd   # the default handler
 
 ######################
 # Internal Libraries #
 ######################
+import kruxstatsd   # the default handler
 from krux.constants import (
     DEFAULT_STATSD_HOST,
     DEFAULT_STATSD_PORT,

@@ -9,6 +9,7 @@ Classes & Functions for email.
 # Standard Libraries #
 ######################
 from __future__ import absolute_import
+from past.builtins import basestring
 from email.mime.text import MIMEText
 from email.header import Header
 
@@ -154,7 +155,7 @@ def sendmail(
     add_header(email, 'To', ','.join(recipients))
 
     # Add additional headers requested by the user.
-    for header, value in headers.iteritems():
+    for header, value in list(headers.items()):
         add_header(email, header, value)
 
     # Send the email to the primary recipients and to the BCC'ed recipients

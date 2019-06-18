@@ -112,7 +112,7 @@ def setup(level=DEFAULT_LOG_LEVEL):
 
     LEVEL is the log level, one of LEVELS
     """
-    assert level in LEVELS.keys(), 'Invalid log level %s' % level
+    assert level in list(LEVELS.keys()), 'Invalid log level %s' % level
     logging.basicConfig(format=FORMAT, level=LEVELS[level])
 
 

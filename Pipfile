@@ -21,7 +21,6 @@ pystache = "==0.5.4"
 kruxstatsd = "==0.3.6"
 argparse = "==1.4.0"
 lockfile = "==0.12.2"
-subprocess32 = "==3.2.7"
 future = "==0.17.1"
 Sphinx = "==1.8.5"
 
@@ -29,6 +28,7 @@ Sphinx = "==1.8.5"
 coverage = "*"
 mock = "*"
 nose = "*"
+mypy = "*"
 
 [requires]
-python_version = "2.7"
+python_version = "3.6"
