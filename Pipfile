@@ -22,7 +22,6 @@ Sphinx = { version="==1.8.5", index="pypi" }
 coverage = { version="*", index="pypi" }
 mock = { version="*", index="pypi" }
 nose = { version="*", index="pypi" }
-mypy = { version="*", index="pypi" }
 
 [requires]
 python_version = "3.6"
