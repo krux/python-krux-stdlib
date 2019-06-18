@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cb1aa3ce1d7504a52d898fe75e52599e01b7985335b649602f0ef4692a61c1a0"
+            "sha256": "31715233eadac2f3bda7e74538580d7db9ab815346340ebdb5aa16633f7d4252"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -9,13 +9,8 @@
         },
         "sources": [
             {
-                "name": "kruxprop",
-                "url": "${KRUX_PIP_PROP_URL}",
-                "verify_ssl": true
-            },
-            {
                 "name": "kruxfoss",
-                "url": "${KRUX_PIP_FOSS_URL}",
+                "url": "https://staticfiles.krxd.net/foss/pypi/",
                 "verify_ssl": true
             },
             {
@@ -38,7 +33,7 @@
                 "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4",
                 "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==1.4.0"
         },
         "babel": {
@@ -74,7 +69,7 @@
             "hashes": [
                 "sha256:67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==0.17.1"
         },
         "idna": {
@@ -102,7 +97,7 @@
             "hashes": [
                 "sha256:1206c661d819d95a26eef8dcf43f3349a5b3d9fe781c75b254a359cc6695bfc9"
             ],
-            "index": "kruxprop",
+            "index": "kruxfoss",
             "version": "==0.3.6"
         },
         "lockfile": {
@@ -110,7 +105,7 @@
                 "sha256:6aed02de03cba24efabcd600b30540140634fc06cfa603822d508d5361e9f799",
                 "sha256:6c3cb24f344923d30b2785d5ad75182c8ea7ac1b6171b08657258ec7429d50fa"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==0.12.2"
         },
         "markupsafe": {
@@ -171,7 +166,7 @@
             "hashes": [
                 "sha256:f7bbc265fb957b4d6c7c042b336563179444ab313fb93a719759111eabd3b85a"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==0.5.4"
         },
         "pytz": {
@@ -207,7 +202,7 @@
                 "sha256:9f3e17c64b34afc653d7c5ec95766e03043cc6d80b0de224f59b6b6e19d37c3c",
                 "sha256:c7658aab75c920288a8cf6f09f244c6cfdae30d82d803ac1634d9f223a80ca08"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==1.8.5"
         },
         "sphinxcontrib-websupport": {
@@ -267,7 +262,7 @@
                 "sha256:f8019c5279eb32360ca03e9fac40a12667715546eed5c5eb59eb381f2f501260",
                 "sha256:fc5f4d209733750afd2714e9109816a29500718b32dd9a5db01c0cb3a019b96a"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==4.5.3"
         },
         "mock": {
@@ -275,7 +270,7 @@
                 "sha256:83657d894c90d5681d62155c82bda9c1187827525880eda8ff5df4ec813437c3",
                 "sha256:d157e52d4e5b938c550f39eb2fd15610db062441a9c2747d3dbfa9298211d0f8"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==3.0.5"
         },
         "mypy": {
@@ -292,6 +287,7 @@
                 "sha256:c46ab3438bd21511db0f2c612d89d8344154c0c9494afc7fbc932de514cf8d15",
                 "sha256:f7a83d6bd805855ef83ec605eb01ab4fa42bcef254b13631e451cbb44914a9b0"
             ],
+            "index": "pypi",
             "version": "==0.701"
         },
         "mypy-extensions": {
@@ -307,7 +303,7 @@
                 "sha256:dadcddc0aefbf99eea214e0f1232b94f2fa9bd98fa8353711dacb112bfcbbb2a",
                 "sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98"
             ],
-            "index": "kruxprop",
+            "index": "pypi",
             "version": "==1.3.7"
         },
         "six": {
