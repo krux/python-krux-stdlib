@@ -119,7 +119,11 @@ class Application(object):
         # Since this is a functional interface, we pass along whether or not stdout logging is desired
         # for a particular subclass/script
         #
-        self.parser = parser or get_parser(description=name, logging_stdout_default=log_to_stdout)
+        self.parser = parser or get_parser(
+            description=name,
+            lockfile=lockfile,
+            logging_stdout_default=log_to_stdout,
+        )
 
         # get more arguments, if needed
         self.add_cli_arguments(self.parser)
