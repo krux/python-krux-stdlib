@@ -23,5 +23,6 @@ coverage = { version="*", index="pypi" }
 mock = { version="*", index="pypi" }
 nose = { version="*", index="pypi" }
 
-[requires]
-python_version = "3.6"
+# These are needed for 2/3 compatibility
+funcsigs = { version="*", index="pypi" }
+subprocess32 = { version="*", index="pypi" }
