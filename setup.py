@@ -16,18 +16,20 @@ REPO_URL = 'https://github.com/krux/python-krux-stdlib'
 # We use the version to construct the DOWNLOAD_URL.
 DOWNLOAD_URL = ''.join((REPO_URL, '/tarball/release/', VERSION))
 
-REQUIREMENTS = ['pystache', 'Sphinx','kruxstatsd', 'argparse', 'lockfile', 'future']
+REQUIREMENTS = ['pystache', 'kruxstatsd', 'lockfile', 'future']
 if os.name == 'posix' and sys.version_info[0] < 3:
     # For Python 2.*, install the backported subprocess
     REQUIREMENTS.append('subprocess32')
 
+TEST_REQUIREMENTS = ['coverage', 'mock', 'nose']
+
+LINT_REQUIREMENTS = ['flake8']
+
 setup(
     name='krux-stdlib',
     version=VERSION,
-    author='Paul Lathrop',
-    author_email='paul@krux.com',
-    maintainer='Paul Lathrop',
-    maintainer_email='paul@krux.com',
+    author='Salesforce DMP Platform Engineering',
+    author_email='krux-pe@salesforce.com',
     description='Standard library of python modules used at Krux.',
     long_description="""
     Standard library of python modules used at Krux. These modules are written
@@ -35,13 +37,22 @@ setup(
     """,
     url=REPO_URL,
     download_url=DOWNLOAD_URL,
-    license='License :: OSI Approved :: MIT License',
-    packages=find_packages(),
-    install_requires=REQUIREMENTS,
-    tests_require=[
-        'coverage',
-        'mock',
-        'nose',
+    license='MIT',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    packages=find_packages(exclude=['tests']),
+    install_requires=REQUIREMENTS,
+    tests_require=TEST_REQUIREMENTS,
+    extras_require={
+        'dev': TEST_REQUIREMENTS + LINT_REQUIREMENTS,
+    },
     python_requires='<4',
 )

@@ -2,18 +2,6 @@
 
 [![Code Climate](https://codeclimate.com/github/krux/python-krux-stdlib/badges/gpa.svg)](https://codeclimate.com/github/krux/python-krux-stdlib)
 
-https://staticfiles.krxd.net/foss/docs/pypi/krux-stdlib/
-
-## CRITICAL NOTE about versions!
-
-For historical reasons a major refactor/redesign was started but
-aborted partway through the release process. As a result, the 1.x
-series of `python-krux-stdlib` **should not be used**. Please use
-either pre-1.x releases or the 2.x series.
-
-Commit a2ff5ab is where we discarded the 1.x series and "reset" master
-to be based off of 0.8.x. That markes the beginning of the 2.x series.
-
 ## Using python-krux-stdlib
 
 1.  Add the Krux pip repository and python-krux-stdlib to the top of
@@ -64,18 +52,9 @@ to be based off of 0.8.x. That markes the beginning of the 2.x series.
 
 5.  Hack away! Make sure to add unit tests.
 
-6.  Make sure you document everything. You can preview the generated
-    documentation by running:
-
-        make html
-
-    in the `doc` subdirectory. Then open `doc/github/html/index.html`
-    in your favorite browser.
-
-7.  To cut a release, update the VERSION in `krux/__init__.py`, merge to the
-    `release` branch, and push to GitHub. Jenkins will build and
-    upload the new version to the Krux python repository, as well as
-    tagging the release in git and updating the documentation.
+6.  To cut a release, update the VERSION in `krux/__init__.py` and push to GitHub.
+    Jenkins will build and upload the new version to the Krux python repository,
+    as well as tagging the release in git.
 
     Note: To set this kind of workflow up for your own projects, clone
     the python-krux-stdlib Jenkins job :-)
