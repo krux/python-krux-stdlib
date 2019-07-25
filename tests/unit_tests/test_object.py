@@ -23,7 +23,7 @@ from mock import MagicMock, patch
 from krux.object import Object
 
 
-class TestObject(Object):
+class DummyObject(Object):
     """
     Just needed a subclass of Object for unit test.
     Nothing to see here. Move along.
@@ -69,6 +69,6 @@ class ObjectTest(unittest.TestCase):
         """
         The default value of _name property for a subclass is handled correctly
         """
-        app = TestObject()
+        app = DummyObject()
 
-        self.assertEqual(TestObject.__name__, app._name)
+        self.assertEqual(DummyObject.__name__, app._name)
