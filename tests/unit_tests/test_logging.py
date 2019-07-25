@@ -45,7 +45,9 @@ def test_get_logger_all():
     """
     with patch('krux.logging.setup') as mock_setup:
         with patch('krux.logging.syslog_setup') as mock_syslog_setup:
-            krux.logging.get_logger(TEST_LOGGER_NAME, syslog_facility=krux.logging.DEFAULT_LOG_FACILITY, log_to_stdout=True, foo='bar')
+            krux.logging.get_logger(
+                TEST_LOGGER_NAME, syslog_facility=krux.logging.DEFAULT_LOG_FACILITY, log_to_stdout=True, foo='bar'
+            )
 
     mock_setup.assert_called_once_with(foo='bar')
     mock_syslog_setup.assert_called_once_with(TEST_LOGGER_NAME, krux.logging.DEFAULT_LOG_FACILITY, foo='bar')

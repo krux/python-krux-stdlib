@@ -5,32 +5,29 @@
 """
 Unit tests for the krux.cli module.
 """
-######################
+#
 # Standard Libraries #
-######################
+#
 from __future__ import absolute_import
 from unittest import TestCase
-
 from logging import Logger
-from time    import time
-
+from time import time
 import os
 import sys
 
-#########################
+#
 # Third Party Libraries #
-#########################
+#
 from argparse import ArgumentParser, Namespace
 from builtins import str
 from mock import MagicMock, patch
 from nose.tools import assert_equal, assert_true
 
-######################
+#
 # Internal Libraries #
-######################
-from krux.stats     import DummyStatsClient
-from krux.logging   import DEFAULT_LOG_LEVEL
-
+#
+from krux.stats import DummyStatsClient
+from krux.logging import DEFAULT_LOG_LEVEL
 import krux.cli as cli
 
 
@@ -38,10 +35,10 @@ def test_get_new_group():
     """
     Getting an argument group that doesn't exist.
     """
-    name                           = 'new_group'
-    mock_parser                    = MagicMock(spec=ArgumentParser)
-    mock_parser._action_groups     = []
-    mock_parser.add_argument_group = MagicMock(return_value = name)
+    name = 'new_group'
+    mock_parser = MagicMock(spec=ArgumentParser)
+    mock_parser._action_groups = []
+    mock_parser.add_argument_group = MagicMock(return_value=name)
 
     group = cli.get_group(mock_parser, name)
 
@@ -53,10 +50,10 @@ def test_get_existing_group():
     """
     Getting an argument group that already exists.
     """
-    name                       = 'existing'
-    mock_group                 = MagicMock()
-    mock_group.title           = name
-    mock_parser                = MagicMock(spec=ArgumentParser)
+    name = 'existing'
+    mock_group = MagicMock()
+    mock_group.title = name
+    mock_parser = MagicMock(spec=ArgumentParser)
     mock_parser._action_groups = [mock_group]
 
     group = cli.get_group(mock_parser, name)
@@ -65,11 +62,11 @@ def test_get_existing_group():
     assert_equal(group, mock_group)
 
 
-### XXX autospecing ArgumentParser does not autospec the private method
-### we are (ab)using in krux.cli. So for now, just do the simplest test
-### possible
+# XXX autospecing ArgumentParser does not autospec the private method
+# we are (ab)using in krux.cli. So for now, just do the simplest test
+# possible
 
-#@patch('krux.cli.ArgumentParser', autospec=True)
+# @patch('krux.cli.ArgumentParser', autospec=True)
 def test_get_parser():
     """
     Test getting a parser from krux.cli
@@ -159,7 +156,6 @@ class TestApplication(TestCase):
             action='version',
             version=' '.join([self.app.name, version]),
         )
-
 
     @patch('krux.cli.krux.logging.get_logger')
     def test_syslog_facility(self, mock_logger):
@@ -338,45 +334,46 @@ class TestOverrideArgsApplication(TestCase):
         self.assertEqual(getattr(app.args, test_attr), test_value)
 
 
-###
-### Test krux.cli.Application
-###
+#
+# Test krux.cli.Application
+#
 
 def test_application():
     """
     Test getting an Application from krux.cli
     """
 
-    ### Vanilla app
+    # Vanilla app
     with patch('sys.argv', [__name__]):
-        app = cli.Application(name = __name__)
+        app = cli.Application(name=__name__)
     assert_true(app)
     assert_true(app.parser)
     assert_true(app.stats)
     assert_true(app.logger)
 
+
 def test_application_locks():
-    ### just to make sure stale runs don't interfere
+    # just to make sure stale runs don't interfere
     name = __name__ + str(time())
 
-    ### Now with lockfile
+    # Now with lockfile
     with patch('sys.argv', [__name__]):
-        app = cli.Application(name = name, lockfile = True)
+        app = cli.Application(name=name, lockfile=True)
 
         assert_true(app)
         assert_true(app.lockfile)
 
-        ### This will use the same lockfile, as it's based on pid.
-        ### so this should work
-        app = cli.Application(name = name, lockfile = True)
+        # This will use the same lockfile, as it's based on pid.
+        # so this should work
+        app = cli.Application(name=name, lockfile=True)
         assert_true(app)
         assert_true(app.lockfile)
 
-        ### needed to clean up lock file, or /tmp will get littered.
+        # needed to clean up lock file, or /tmp will get littered.
         app._run_exit_hooks()
 
-        ### XXX ideally we'd have a failure test in here as well, but
-        ### because of the way it's implemented LockFile won't fail if the
-        ### same pid tries to get the same lock twice:
-        ### http://pydoc.net/Python/lockfile/0.9.1/lockfile.linklockfile/
-        ### suggestions welcome!
+        # XXX ideally we'd have a failure test in here as well, but
+        # because of the way it's implemented LockFile won't fail if the
+        # same pid tries to get the same lock twice:
+        # http://pydoc.net/Python/lockfile/0.9.1/lockfile.linklockfile/
+        # suggestions welcome!
