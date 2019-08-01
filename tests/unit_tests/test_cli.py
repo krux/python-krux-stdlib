@@ -238,6 +238,7 @@ class TestApplication(TestCase):
 
         assert_true(mock_logger.exception.called)
 
+    @patch('sys.argv', ['test-app'])
     def test_raise_critical_error(self):
         """
         krux.cli.Application executes the exit hooks, logs, and wraps the error as CriticalApplicationError upon raise_critical_error call
@@ -297,6 +298,7 @@ class TestApplication(TestCase):
 
         mock_logging.captureWarnings.assert_called_once_with(True)
 
+    @patch('sys.argv', ['test-app'])
     def test_args(self):
         """
         krux.cli.Application gets args that match sys.argv (minus the name of the executable)
