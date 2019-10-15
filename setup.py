@@ -21,7 +21,7 @@ if os.name == 'posix' and sys.version_info[0] < 3:
     # For Python 2.*, install the backported subprocess
     REQUIREMENTS.append('subprocess32')
 
-TEST_REQUIREMENTS = ['coverage', 'mock', 'nose', 'pytest', 'pytest-cov']
+TEST_REQUIREMENTS = ['coverage', 'mock', 'nose', 'pytest', 'pytest-cov', 'pytest-runner']
 
 LINT_REQUIREMENTS = ['flake8']
 
