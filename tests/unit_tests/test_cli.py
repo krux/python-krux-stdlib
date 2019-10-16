@@ -79,9 +79,10 @@ def test_get_script_name():
     """
     Test getting script name from the invoking script
     """
-    name = cli.get_script_name()
+    script_name = cli.get_script_name()
+    command = os.path.basename(sys.argv[0]).replace('.py', '')
 
-    assert_equal(name, os.path.basename(sys.argv[0]))
+    assert_equal(script_name, command)
 
 
 class TestApplication(TestCase):
