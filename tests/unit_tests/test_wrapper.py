@@ -24,7 +24,7 @@ from mock import MagicMock, call
 from krux.wrapper import Wrapper
 
 
-class TestWrapper(Wrapper):
+class DummyWrapper(Wrapper):
     z = 3
 
     def _get_wrapper_function(self, func):
@@ -35,7 +35,7 @@ class TestWrapper(Wrapper):
         return wrap
 
 
-class TestObject(object):
+class DummyObject(object):
     x = 1
 
     def y(self, value):
@@ -48,9 +48,9 @@ class WrapperTest(unittest.TestCase):
         self._logger = MagicMock()
         self._stats = MagicMock()
 
-        self._object = TestObject()
+        self._object = DummyObject()
 
-        self._wrapper = TestWrapper(
+        self._wrapper = DummyWrapper(
             wrapped=self._object,
             logger=self._logger,
             stats=self._stats,
@@ -66,7 +66,7 @@ class WrapperTest(unittest.TestCase):
         """
         krux.wrapper.Wrapper correctly returns the value of the wrapper's property
         """
-        self.assertEqual(TestWrapper.z, self._wrapper.z)
+        self.assertEqual(DummyWrapper.z, self._wrapper.z)
         self.assertFalse(self._logger.debug.called)
 
     def test_wrapped_property(self):

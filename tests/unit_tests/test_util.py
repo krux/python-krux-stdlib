@@ -5,22 +5,21 @@
 """
 Tests for the krux.util module.
 """
-######################
+#
 # Standard Libraries #
-######################
+#
 from __future__ import absolute_import
-
 import unittest
 
-#########################
+#
 # Third Party Libraries #
-#########################
+#
 from builtins import object
 from nose.tools import assert_false, assert_true
 
-######################
+#
 # Internal Libraries #
-######################
+#
 from krux.util import hasmethod, flatten
 
 

@@ -8,17 +8,15 @@ Unit tests for the krux.stats module.
 from __future__ import absolute_import
 __author__ = 'Jos Boumans'
 
-#########################
+#
 # Third Party Libraries #
-#########################
-
+#
 from nose.tools import assert_true, assert_false
 
-######################
+#
 # Internal Libraries #
-######################
+#
 import krux.stats
-
 from krux.stats import DummyStatsClient
 import kruxstatsd
 import statsd
