@@ -80,7 +80,8 @@ def cache(cached_function: Callable = None, *, expire_seconds: Union[float, int]
         >>> @cache(expire_seconds=60)
         ... def get_page(url):
         ...     with urlopen(url) as r:
-        ...     return r.read().decode()
+        ...         page = r.read().decode()
+        ...     return page
     """
     if cached_function is None:
         return partial(cache, expire_seconds=expire_seconds)
