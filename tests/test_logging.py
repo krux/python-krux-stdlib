@@ -1,27 +1,16 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Unit tests for the krux.logging module.
 """
-from __future__ import absolute_import
+from __future__ import generator_stop
 import logging
-__author__ = 'Jos Boumans'
-
-#########################
-# Third Party Libraries #
-#########################
 
 from mock import patch
 from nose.tools import assert_true
 
-######################
-# Internal Libraries #
-######################
-
 import krux.logging
 
+__author__ = 'Jos Boumans'
 
 TEST_LOGGER_NAME = 'test-logger'
 

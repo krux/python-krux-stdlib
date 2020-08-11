@@ -1,25 +1,8 @@
-# -*- coding: utf-8 -*-
-#
-# © 2017 Salesforce.com, inc.
-#
-
-#
-# Standard libraries
-#
-
-from __future__ import absolute_import
+# Copyright 2013-2020 Salesforce.com, inc.
+from __future__ import generator_stop
 import unittest
 
-#
-# Third party libraries
-#
-
-from builtins import object
 from mock import MagicMock, call
-
-#
-# Internal libraries
-#
 
 from krux.wrapper import Wrapper
 
@@ -38,7 +21,8 @@ class DummyWrapper(Wrapper):
 class DummyObject(object):
     x = 1
 
-    def y(self, value):
+    @staticmethod
+    def y(value):
         return {'Name': 'y', 'Value': value}
 
 
@@ -71,7 +55,7 @@ class WrapperTest(unittest.TestCase):
 
     def test_wrapped_property(self):
         """
-        krux.wrapper.Wrapper correctly falls back to the wrapped's property when it is not overriden by the wrapper
+        krux.wrapper.Wrapper correctly falls back to the wrapped's property when it is not overridden by the wrapper
         """
         self.assertEqual(self._object.x, self._wrapper.x)
 
@@ -83,7 +67,7 @@ class WrapperTest(unittest.TestCase):
 
     def test_wrapped_function(self):
         """
-        krux.wrapper.Wrapper correctly calls the wrapped's function when it is not overriden by the wrapper
+        krux.wrapper.Wrapper correctly calls the wrapped's function when it is not overridden by the wrapper
         """
         value = 2
         self.assertEqual(self._object.y(value), self._wrapper.y(value))

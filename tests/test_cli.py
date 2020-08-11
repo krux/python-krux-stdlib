@@ -1,31 +1,19 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Unit tests for the krux.cli module.
 """
-#
-# Standard Libraries #
-#
-from __future__ import absolute_import
-from unittest import TestCase
-from logging import Logger
-from time import time
+from __future__ import generator_stop
+import inspect
 import os
 import sys
-
-#
-# Third Party Libraries #
-#
 from argparse import ArgumentParser, Namespace
-from builtins import str
+from logging import Logger
+from unittest import TestCase
+from time import time
+
 from mock import MagicMock, patch
 from nose.tools import assert_equal, assert_true
 
-#
-# Internal Libraries #
-#
 from krux.stats import DummyStatsClient
 from krux.logging import DEFAULT_LOG_LEVEL
 import krux.cli as cli
@@ -79,15 +67,13 @@ def test_get_script_name():
     """
     Test getting script name from the invoking script
     """
-    script_name = cli.get_script_name()
-    command = os.path.basename(sys.argv[0]).replace('.py', '')
-
-    assert_equal(script_name, command)
+    assert cli.get_script_name() == 'test_cli'
 
 
 class TestApplication(TestCase):
 
-    def _get_parser(self, args=None):
+    @staticmethod
+    def _get_parser(args=None):
         """
         Returns a mock parser with the given arguments set
 
@@ -119,7 +105,7 @@ class TestApplication(TestCase):
 
     def test_init(self):
         """
-        krux.cli.Application initializion sets the expected attributes.
+        krux.cli.Application initialization sets the expected attributes.
         """
         assert_equal(self.app.name, self.__class__.__name__)
         assert_true(isinstance(self.app.args, Namespace))
@@ -242,7 +228,8 @@ class TestApplication(TestCase):
     @patch('sys.argv', ['test-app'])
     def test_raise_critical_error(self):
         """
-        krux.cli.Application executes the exit hooks, logs, and wraps the error as CriticalApplicationError upon raise_critical_error call
+        krux.cli.Application executes the exit hooks, logs,
+        and wraps the error as CriticalApplicationError upon raise_critical_error call
         """
         # Mock a logger
         mock_logger = MagicMock(spec=Logger, autospec=True)

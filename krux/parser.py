@@ -1,38 +1,22 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 
-#
-# Standard libraries
-#
-from __future__ import absolute_import
-from os import environ
+from __future__ import generator_stop
 
-#
-# Third party libraries
-#
-from builtins import next, str
 from argparse import ArgumentParser, _ArgumentGroup
+from os import environ
+from typing import Optional
 
-#
-# Internal libraries
-#
-from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
-from krux.constants import (
-    DEFAULT_STATSD_HOST,
-    DEFAULT_STATSD_PORT,
-    DEFAULT_STATSD_ENV,
-    DEFAULT_LOCK_DIR,
-)
+from krux.constants import (DEFAULT_LOCK_DIR, DEFAULT_STATSD_ENV,
+                            DEFAULT_STATSD_HOST, DEFAULT_STATSD_PORT)
+from krux.logging import DEFAULT_LOG_FACILITY, DEFAULT_LOG_LEVEL, LEVELS
 
 
 def get_parser(
+    *args,
     logging=True,
     stats=True,
     lockfile=True,
     logging_stdout_default=True,
-    *args,
     **kwargs
 ):
     # GOTCHA: KruxParser takes in a logger and a stats object. However, "stats" parameter is already defined
@@ -63,6 +47,7 @@ def add_logging_args(parser, stdout_default=True):
     created if it doesn't already exist.
 
     :argument parser: parser instance to which the arguments will be added
+    :argument stdout_default: whether logging to stdout is or is not the default mode.
     """
     group = get_group(parser=parser, group_name='logging')
 
@@ -188,17 +173,19 @@ def get_group(parser, group_name, env_var_prefix=None):
 
     :argument parser: :py:class:`python3:argparse.ArgumentParser` to
                       add/retrieve the group to/from.
-
     :argument group_name: Name of the argument group to be created/returned.
+    :argument env_var_prefix: Prefix to use for the environment variables support of this group. If set to None,
+                              uses the title of the _ArgumentGroup that this is wrapping. If not set or set to False,
+                              does not add any prefix. This argument MUST be a keyword argument.
     """
 
     # We don't want to add an additional group if there's already a 'logging'
     # group. Sadly, ArgumentParser doesn't provide an API for this, so we have
     # to be naughty and access a private variable.
-    groups = [g.title for g in parser._action_groups]
+    groups = [g.title for g in parser._action_groups]  # pylint: disable=protected-access
 
     if group_name in groups:
-        group = parser._action_groups[groups.index(group_name)]
+        group = parser._action_groups[groups.index(group_name)]  # pylint: disable=protected-access
     else:
         group = parser.add_argument_group(title=group_name, env_var_prefix=env_var_prefix)
 
@@ -299,7 +286,8 @@ class KruxGroup(_ArgumentGroup):
         # Modify the default value to rely on the environment variable
         if env_var is not False and is_optional_argument:
             # Find the first long-named option
-            first_long = next((arg_name for arg_name in args if arg_name[1] in self.prefix_chars), None)
+            first_long = next(
+                (arg_name for arg_name in args if arg_name[1] in self.prefix_chars), None)  # type: Optional[str]
 
             # There must be a long name or environment variable support is explicitly turned off.
             if first_long is None:

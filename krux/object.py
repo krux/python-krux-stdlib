@@ -1,29 +1,13 @@
-# -*- coding: utf-8 -*-
-#
-# © 2016-2017 Salesforce.com, inc.
-#
+# © Copyright 2013-2020 Salesforce.com, inc.
+from __future__ import generator_stop
 
-#
-# Standard libraries
-#
-
-from __future__ import absolute_import
 from abc import ABCMeta
-
-#
-# Third party libraries
-#
-
-#
-# Internal libraries
-#
 
 from krux.logging import get_logger
 from krux.stats import get_stats
-from future.utils import with_metaclass
 
 
-class Object(with_metaclass(ABCMeta, object)):
+class Object(object, metaclass=ABCMeta):
     """
     An abstract class to handle the common Krux coding pattern
 

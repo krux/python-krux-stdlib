@@ -1,24 +1,8 @@
-# -*- coding: utf-8 -*-
-#
-# © 2016-2017 Salesforce.com, inc.
-#
-
-#
-# Standard libraries
-#
-
-from __future__ import absolute_import
+# Copyright 2013-2020 Salesforce.com, inc.
+from __future__ import generator_stop
 import unittest
 
-#
-# Third party libraries
-#
-
 from mock import MagicMock, patch
-
-#
-# Internal libraries
-#
 
 from krux.object import Object
 

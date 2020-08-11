@@ -1,24 +1,10 @@
-# -*- coding: utf-8 -*-
-#
-# © 2017 Salesforce.com, inc.
-#
-
-#
-# Standard libraries
-#
-from __future__ import absolute_import
+# Copyright 2013-2020 Salesforce.com, inc.
+from __future__ import generator_stop
 import unittest
 
-#
-# Third party libraries
-#
 from mock import MagicMock, patch, call
-from builtins import str
 from argparse import _ArgumentGroup, ArgumentParser
 
-#
-# Internal libraries
-#
 from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
 from krux.constants import (
     DEFAULT_STATSD_HOST,

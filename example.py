@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+# Copyright 2013-2020 Salesforce.com, inc.
 import krux.cli
 
 
@@ -41,7 +41,6 @@ class ExampleLoggingApp(krux.cli.Application):
         self.has_headlight_fluid = self.args.has_headlight_fluid
 
         # Do any other initialization tasks here
-        pass
 
     # If your app wants to add its own command line arguments, do it here.
     # If not, then you don't need to create this method.
@@ -73,10 +72,13 @@ class ExampleLoggingApp(krux.cli.Application):
             print('We have enough headlight fluid.')
         else:
             print('We could use more headlight fluid.')
-        # the default log level is "warn" so you won't see these uness
+        # the default log level is "warn" so you won't see these unless
         # you pass in --log-level from the command line
-        self.logger.debug("this is a debug level message")
+        self.logger.critical("this is a critical level message")
+        self.logger.error("this is a error level message")
+        self.logger.warn("this is a warning level message")
         self.logger.info("this is a info level message")
+        self.logger.debug("this is a debug level message")
 
 
 def main():
@@ -99,10 +101,9 @@ def main():
         # provided by the Krux standard library. calling logger with each available log level
         # might help you diagnose/tune your local syslog config; you can also over-ride the
         # class' syslog_facility as configured above with the --syslog-facility argument.
+        app.logger.info('Doing app things.')
         app.run()
-        app.logger.warn("this is a warning level message")
-        app.logger.error("this is a error level message")
-        app.logger.critical("this is a critical level message")
+        app.logger.info('Finished doing app things.')
 
 
 if __name__ == '__main__':
