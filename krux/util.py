@@ -5,7 +5,7 @@ Miscellaneous utilities that don't have a better home.
 from __future__ import generator_stop
 
 from datetime import datetime, timedelta
-from functools import partial, wraps
+from functools import partial, update_wrapper
 from typing import Any, Callable, Mapping, Sequence, Union
 
 
@@ -72,7 +72,33 @@ def _function_args_hash(args: Sequence = None,
     return hash(_args + (_args_kwargs_delimiter,) + _kwargs)
 
 
-def cache(cached_function: Callable = None, *, expire_seconds: Union[float, int] = None) -> Callable:
+def cache_wrapper(cached_function: Callable, *,
+                  expire_seconds: Union[float, int] = None,
+                  ) -> Callable:
+    """Function wrapper that caches the wrapped function's results.
+    Optionally, cached call results can be expired with the expire_seconds argument.
+    See @utils.cache() for the decorator version of this."""
+    expire_delta = timedelta(seconds=expire_seconds) if expire_seconds is not None else timedelta.max
+    items: dict = {}
+
+    def wrapper(*args: Sequence, **kwargs: Mapping) -> Any:
+        now = datetime.now()
+        key = _function_args_hash(args, kwargs)
+        item = items[key] if key in items else None
+        if item and now < item['expiration']:
+            return item['value']
+        else:
+            value = cached_function(*args, **kwargs)
+            expiration = now + expire_delta if expire_delta != timedelta.max else datetime.max
+            items[key] = {'value': value, 'expiration': expiration}
+            return value
+
+    return wrapper
+
+
+def cache(cached_function: Callable = None, *,
+          expire_seconds: Union[float, int] = None
+          ) -> Callable:
     """Caching decorator with optional expiration in seconds.
 
     Example:
@@ -85,23 +111,7 @@ def cache(cached_function: Callable = None, *, expire_seconds: Union[float, int]
     """
     if cached_function is None:
         return partial(cache, expire_seconds=expire_seconds)
-
-    _cached_function = cached_function  # type: Callable
-    del cached_function
-    expire_delta = timedelta(seconds=expire_seconds) if expire_seconds is not None else timedelta.max
-    items = {}  # type: dict
-
-    @wraps(_cached_function)
-    def wrapper(*args: Sequence, **kwargs: Mapping) -> Any:
-        now = datetime.now()
-        key = _function_args_hash(args, kwargs)
-        item = items[key] if key in items else None
-        if item and now < item['expiration']:
-            return item['value']
-        else:
-            value = _cached_function(*args, **kwargs)
-            expiration = now + expire_delta if expire_delta != timedelta.max else datetime.max
-            items[key] = {'value': value, 'expiration': expiration}
-            return value
-
-    return wrapper
+    else:
+        wrapper = cache_wrapper(cached_function, expire_seconds=expire_seconds)
+        update_wrapper(wrapper, cached_function)
+        return wrapper

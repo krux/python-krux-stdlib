@@ -101,6 +101,13 @@ def test_function_ags_hash(test, expected):
     assert test == expected
 
 
+def test_cache_wrapper():
+    wrapper = util.cache_wrapper(lambda _: _)
+    assert wrapper(1) == 1
+    assert wrapper(1) == 1
+    assert wrapper(2) == 2
+
+
 never_timeout_cache_call_count = 0
 
 
