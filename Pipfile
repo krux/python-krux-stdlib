@@ -10,21 +10,21 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-coverage = "*"
-pylint = "*"
-mock = "*"
-mypy = "*"
-nose = "*"
-pytest = "*"
-pytest-cov  = "*"
-pytest-mypy = "*"
-pytest-pylint = "*"
-pytest-runner  = "*"
+coverage = "~=5.2"
+pylint = "~=2.5"
+mock = "~=4.0"
+mypy = "~=0.782"
+nose = "~=1.3"
+pytest = "~=6.0"
+pytest-cov  = "~=2.10"
+pytest-mypy = "~=0.6"
+pytest-pylint = "~=0.17"
+pytest-runner  = "~=5.2"
 
 [packages]
-kruxstatsd = {source = "kruxfoss"}
-lockfile = "*"
-pystache = "*"
+kruxstatsd = {version = "~=0.3", source = "kruxfoss"}
+lockfile = "~=0.12"
+pystache = "~=0.5"
 
 [requires]
 python_version = "3.6"
