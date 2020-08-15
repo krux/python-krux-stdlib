@@ -12,11 +12,11 @@ from krux.logging import DEFAULT_LOG_FACILITY, DEFAULT_LOG_LEVEL, LEVELS
 
 
 def get_parser(
-    *args,
     logging=True,
     stats=True,
     lockfile=True,
     logging_stdout_default=True,
+    *args,
     **kwargs
 ):
     # GOTCHA: KruxParser takes in a logger and a stats object. However, "stats" parameter is already defined

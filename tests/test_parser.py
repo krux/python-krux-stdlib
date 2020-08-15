@@ -40,11 +40,13 @@ class GetterTest(unittest.TestCase):
         mock_stats.side_effect = lambda x: x
         mock_lockfile.side_effect = lambda x: x
 
-        parser = get_parser(True, True, True, True, self.FAKE_NAME, description=self.FAKE_DESCRIPTION)
+        parser_class_args = [self.FAKE_NAME]
+        parser_class_kwargs = {'description': self.FAKE_DESCRIPTION}
+        parser = get_parser(True, True, True, True, *parser_class_args, **parser_class_kwargs)
 
         # Check whether the return value is correct
         self.assertEqual(mock_parser_class.return_value, parser)
-        mock_parser_class.assert_called_once_with(self.FAKE_NAME, description=self.FAKE_DESCRIPTION)
+        mock_parser_class.assert_called_once_with(*parser_class_args, **parser_class_kwargs)
 
         # Check whether the add_x_args functions were correctly called
         mock_logging.assert_called_once_with(parser, True)

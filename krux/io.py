@@ -92,6 +92,7 @@ class IORunCmd(object):
                 stdout, stderr = process.communicate(timeout=timeout)
             except subprocess.TimeoutExpired:
                 process.send_signal(timeout_terminate_signal)
+                stdout, stderr = process.communicate()
                 raise
 
             # set the bookkeeping variables.
