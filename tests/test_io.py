@@ -1,37 +1,19 @@
-# -*- coding: utf-8 -*-
-#
-# © 2014-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Unit tests for the krux.io module.
 """
-#
-# Standard Libraries #
-#
-from __future__ import absolute_import
+from __future__ import generator_stop
 from unittest import TestCase
 from logging import Logger
 import re
 import shutil
+import subprocess
 import tempfile
 import signal
-import os
-import sys
 
-#
-# Third Party Libraries #
-#
 from nose.tools import assert_equal, assert_true, assert_false, raises
 from mock import MagicMock, patch, call
-if os.name == 'posix' and sys.version_info[0] < 3:
-    # For Python 2.*, use the backported subprocess
-    import subprocess32 as subprocess
-else:
-    import subprocess
 
-#
-# Internal Libraries #
-#
 import krux.io
 
 
@@ -106,9 +88,8 @@ class TestApplication(TestCase):
 
     def test_cmd_filters(self):
         """ Strip out parts of the output, based on filters """
-
-        filter = re.compile(r'\d+')
-        cmd = self.io.run_cmd(command='echo 42', filters=[filter])
+        filter_ = re.compile(r'\d+')
+        cmd = self.io.run_cmd(command='echo 42', filters=[filter_])
 
         assert_true(cmd.ok)
         assert_equal(cmd.returncode, 0)

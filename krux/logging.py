@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 This module provides support for configuring the python logging module for
 a Krux application.
@@ -81,14 +78,12 @@ problems. Here is a guide to what each log level means at Krux:
     stop accepting traffic. These messages should be extremely rare in any
     application.
 """
-#
-# Standard Libraries
-#
-from __future__ import absolute_import
+from __future__ import generator_stop
+
 import logging
-import logging.handlers
-import platform
 import os
+import platform
+from logging.handlers import SysLogHandler
 
 DEFAULT_LOG_LEVEL = 'warning'
 # local7 is chosen because in a typical default syslog configuration, it is *not* logged anywhere.
@@ -103,7 +98,7 @@ LEVELS = dict((name, getattr(logging, name.upper()))
 #: <http://docs.python.org/2.6/library/logging.html#formatter>`_ used by Krux
 #: python applications.
 FORMAT = '%(asctime)s: %(name)s/%(levelname)-9s: %(message)s'
-SYSLOG_FORMAT='%(name)s: %(message)s'
+SYSLOG_FORMAT = '%(name)s: %(message)s'
 
 
 def setup(level=DEFAULT_LOG_LEVEL):
@@ -117,7 +112,7 @@ def setup(level=DEFAULT_LOG_LEVEL):
 
 
 def syslog_setup(name, syslog_facility, **kwargs):
-    assert syslog_facility in logging.handlers.SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
+    assert syslog_facility in SysLogHandler.facility_names, 'Invalid syslog facility %s' % syslog_facility
     logger = logging.getLogger(name)
     # On Linux, Python defaults to logging to localhost:514; on Ubuntu, rsyslog is not configured
     # to listen on the network. On other platforms (Darwin/OS X at least), Python by default sends
@@ -126,9 +121,9 @@ def syslog_setup(name, syslog_facility, **kwargs):
     # build docker container. Can't use os.path.isfile() which returns False for devices.
     log_device = '/dev/log'
     if platform.system() == 'Linux' and os.path.exists(log_device) and os.access(log_device, os.W_OK):
-        handler = logging.handlers.SysLogHandler(log_device, facility=syslog_facility)
+        handler = SysLogHandler(log_device, facility=syslog_facility)
     else:
-        handler = logging.handlers.SysLogHandler(facility=syslog_facility)
+        handler = SysLogHandler(facility=syslog_facility)
     logger.addHandler(handler)
     # set the level, if it was passed:
     if 'level' in kwargs:

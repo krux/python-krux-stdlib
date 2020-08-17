@@ -34,27 +34,24 @@
 
 ## Developing python-krux-stdlib
 
+### Prerequisites:
+- Python 3.6 or above.
+- pipenv
+
 1.  Clone the repository.
 
-        git clone git@github.com:krux/python-krux-stdlib.git ~/Projects/krux-stdlib
+        git clone git@github.com:krux/python-krux-stdlib.git && cd python-krux-stdlib
 
 2.  Set up a virtual environment.
 
-        mkdir -p ~/.virtualenv/krux-stdlib && virtualenv ~/.virtualenv/krux-stdlib
+        pipenv install --develop
 
-3.  Activate the virtual environment.
+3.  Hack away! Make sure to add unit tests.
 
-        source ~/.virtualenv/krux-stdlib/bin/activate
+4.  Run tests.
 
-4.  Install the requirements.
+        pipenv run python setup.py test
 
-        cd ~/Projects/krux-stdlib; pip install -r requirements.pip
-
-5.  Hack away! Make sure to add unit tests.
-
-6.  To cut a release, update the VERSION in `krux/__init__.py` and push to GitHub.
+5.  To cut a release, update the VERSION in `krux/__init__.py` and push to GitHub.
     Jenkins will build and upload the new version to the Krux python repository,
     as well as tagging the release in git.
-
-    Note: To set this kind of workflow up for your own projects, clone
-    the python-krux-stdlib Jenkins job :-)

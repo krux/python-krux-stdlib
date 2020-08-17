@@ -1,24 +1,10 @@
-# -*- coding: utf-8 -*-
-#
-# © 2017 Salesforce.com, inc.
-#
-
-#
-# Standard libraries
-#
-from __future__ import absolute_import
+# Copyright 2013-2020 Salesforce.com, inc.
+from __future__ import generator_stop
 import unittest
 
-#
-# Third party libraries
-#
 from mock import MagicMock, patch, call
-from builtins import str
 from argparse import _ArgumentGroup, ArgumentParser
 
-#
-# Internal libraries
-#
 from krux.logging import LEVELS, DEFAULT_LOG_LEVEL, DEFAULT_LOG_FACILITY
 from krux.constants import (
     DEFAULT_STATSD_HOST,
@@ -54,11 +40,13 @@ class GetterTest(unittest.TestCase):
         mock_stats.side_effect = lambda x: x
         mock_lockfile.side_effect = lambda x: x
 
-        parser = get_parser(True, True, True, True, self.FAKE_NAME, description=self.FAKE_DESCRIPTION)
+        parser_class_args = [self.FAKE_NAME]
+        parser_class_kwargs = {'description': self.FAKE_DESCRIPTION}
+        parser = get_parser(True, True, True, True, *parser_class_args, **parser_class_kwargs)
 
         # Check whether the return value is correct
         self.assertEqual(mock_parser_class.return_value, parser)
-        mock_parser_class.assert_called_once_with(self.FAKE_NAME, description=self.FAKE_DESCRIPTION)
+        mock_parser_class.assert_called_once_with(*parser_class_args, **parser_class_kwargs)
 
         # Check whether the add_x_args functions were correctly called
         mock_logging.assert_called_once_with(parser, True)

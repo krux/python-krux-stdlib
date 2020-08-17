@@ -1,26 +1,13 @@
-# -*- coding: utf-8 -*-
-#
-# © 2017 Krux Digital, Inc.
-#
+# © Copyright 2013-2020 Salesforce.com, inc.
+from __future__ import generator_stop
 
-#
-# Standard libraries
-#
-from __future__ import absolute_import
 from abc import ABCMeta
+from typing import Callable
 
-#
-# Third party libraries
-#
-from future.utils import with_metaclass
-
-#
-# Internal libraries
-#
 from krux.object import Object
 
 
-class Wrapper(with_metaclass(ABCMeta, Object)):
+class Wrapper(Object, metaclass=ABCMeta):
     # Wrapper is an abstract class and not to be instantiated directly. It should be used by being inherited
     def __init__(self, wrapped, *args, **kwargs):
         # Call to the superclass to bootstrap.
@@ -28,22 +15,23 @@ class Wrapper(with_metaclass(ABCMeta, Object)):
 
         self._wrapped = wrapped
 
-    def _get_wrapper_function(self, func):
+    def _get_wrapper_function(self, func: Callable):
         """
         Returns a function to be called given a function from the wrapped class. Override this function to generate
         a default wrapper around the function.
 
         :example:
-            >>>class Foo(Wrapper):
-            >>>    def _get_wrapper_function(self, func):
-            >>>        def logged_function(*args, **kwargs):
-            >>>            self._logger.debug("Calling function %s with args %s and kwargs %s", func.__name__, args, kwargs)
-            >>>            return func(*args, **kwargs)
-            >>>        return logged_function
-            >>>
-            >>>foo = Foo(list)
-            >>>foo.append(1)
-            >>># Debug log: Calling function append with args [1] and kwargs {}
+        >>> class Foo(Wrapper):
+        ...     def _get_wrapper_function(self, func_):
+        ...         def logged_function(*args, **kwargs):
+        ...             self._logger.debug("Calling function %s with args %s and kwargs %s",
+        ...                                func_.__name__, args, kwargs)
+        ...             return func_(*args, **kwargs)
+        ...         return logged_function
+        ...
+        >>> foo = Foo(list)
+        >>> foo.append(1)
+        >>> # Debug log: Calling function append with args [1] and kwargs {}
 
         :param func:
         :type func: function

@@ -1,21 +1,12 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 This module provides tools for handling command-line arguments for a Krux
 application.
 
-Krux applications use :py:mod:`python3:argparse` for parsing command-line
+Krux applications use `argparse` for parsing command-line
 options. The ``add_*_args`` functions in this module all expect to be called
-with an instance of :py:class:`python3:argparse.ArgumentParser`, a subclass,
+with an instance of `argparse.ArgumentParser`, a subclass,
 or an object that follows the same interface.
-
-:py:mod:`python3:argparse` is part of the standard library in Python 3.x, but
-Krux uses Python 2.6, so you will need to add it to your
-:file:`requirements.pip` file::
-
-    argparse==1.2.1
 
 Usage::
 
@@ -32,33 +23,23 @@ Usage::
             parser  = app.parser
 
 """
-######################
-# Standard Libraries #
-######################
-from __future__ import absolute_import
-from builtins import object
-from functools import partial
-from contextlib import contextmanager
-import sys
+from __future__ import generator_stop
 
+import inspect
 import logging
+import logging.handlers
 import os.path
-import __main__
+import sys
+from contextlib import contextmanager
+from functools import partial
 
-#########################
-# Third Party Libraries #
-#########################
 from lockfile import FileLock, LockError, UnlockError
-from future.utils import raise_with_traceback
 
-######################
-# Internal Libraries #
-######################
-from krux.logging import DEFAULT_LOG_FACILITY
-from krux.constants import DEFAULT_LOCK_TIMEOUT
 import krux.io
-import krux.stats
 import krux.logging
+import krux.stats
+from krux.constants import DEFAULT_LOCK_TIMEOUT_SECONDS
+from krux.logging import DEFAULT_LOG_FACILITY
 from krux.parser import get_group, get_parser
 
 ####################
@@ -75,11 +56,10 @@ class CriticalApplicationError(Exception):
     This error is only raised if the application is expected to exit.
     It should never be caught.
     """
-    pass
 
 
 class Application(object):
-    _VERSIONS = {}
+    _VERSIONS = {}  # type: dict
     _WARNING_LOGGER_NAME = 'py.warnings'
 
     """
@@ -119,11 +99,14 @@ class Application(object):
         # Since this is a functional interface, we pass along whether or not stdout logging is desired
         # for a particular subclass/script
         #
-        self.parser = parser or get_parser(
-            description=name,
-            lockfile=lockfile,
-            logging_stdout_default=log_to_stdout,
-        )
+        if parser:
+            self.parser = parser
+        else:
+            self.parser = get_parser(
+                description=name,
+                lockfile=lockfile,
+                logging_stdout_default=log_to_stdout,
+            )
 
         # get more arguments, if needed
         self.add_cli_arguments(self.parser)
@@ -188,7 +171,7 @@ class Application(object):
         # this will throw an execption if anything goes wrong
         try:
             self.lockfile = FileLock(_lockfile)
-            self.lockfile.acquire(timeout=DEFAULT_LOCK_TIMEOUT)
+            self.lockfile.acquire(timeout=DEFAULT_LOCK_TIMEOUT_SECONDS)
             self.logger.debug("Acquired lock: %s", self.lockfile.path)
         except LockError as err:
             self.logger.warning("Lockfile error occurred: %s", err)
@@ -214,7 +197,7 @@ class Application(object):
         # release the hook when we're done
         self.add_exit_hook(___release_lockfile, self)
 
-    def add_cli_arguments(self, parser):
+    def add_cli_arguments(self, parser):  # pylint: disable=unused-argument
         """
         Any additional CLI arguments that (super) classes might want
         to add. This method is overridable.
@@ -244,12 +227,12 @@ class Application(object):
         Run any exit hooks that are defined. Called from
         exit() and raise_critical_error()
         """
-
+        self.logger.debug("Running exit hooks.")
         for hook in self._exit_hooks:
             try:
                 self.logger.debug("Running exit hook %s", hook)
                 hook()
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 self.logger.exception(
                     'krux.cli.Application.exit: Exception raised by exit hook.'
                 )
@@ -266,14 +249,15 @@ class Application(object):
         self._run_exit_hooks()
         sys.exit(code)
 
-    def raise_critical_error(self, err):
+    def raise_critical_error(self, err: Exception):
         """
         This logs the error, releases any lock files and throws an exception.
         The expectation is that the application exits after this.
         """
         self.logger.critical(err)
         self._run_exit_hooks()
-        raise_with_traceback(CriticalApplicationError(err))
+        tb = sys.exc_info()[2]
+        raise CriticalApplicationError(err).with_traceback(tb)
 
     @contextmanager
     def context(self):
@@ -293,21 +277,18 @@ class Application(object):
         """
         try:
             yield
-        except Exception:
+        except Exception as e:
             # always run exit hooks, even on exceptions
+            self.logger.critical('Uncaught exception. exception=%s', repr(e))
             self._run_exit_hooks()
             raise
-            # XXX: we may want to change this to log the exception and
-            # automatically exit with a non-zero exit code
 
         # if the block finishes normally, call exit
         self.exit()
 
 
 def get_script_name():
-    # get the name of the script, without an extension
-    name = os.path.splitext(os.path.basename(__main__.__file__))[0]
-    # and replace underscores with dashes
-    name = name.replace('_', '-')
-
+    """get the name of the Python file that is calling this function, with `.py` stripped off."""
+    filename = inspect.stack()[1].filename
+    name = os.path.splitext(os.path.basename(filename))[0]
     return name

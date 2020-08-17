@@ -1,25 +1,12 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Miscellaneous utilities that don't have a better home.
 """
+from __future__ import generator_stop
 
-######################
-# Standard Libraries #
-######################
-from __future__ import absolute_import
-from __future__ import division
-
-#########################
-# Third Party Libraries #
-#########################
-from past.utils import old_div
-
-######################
-# Internal Libraries #
-######################
+from datetime import datetime, timedelta
+from functools import partial, update_wrapper
+from typing import Any, Callable, Mapping, Sequence, Union
 
 
 def hasmethod(obj, method):
@@ -33,12 +20,11 @@ def hasmethod(obj, method):
     return callable(getattr(obj, method, None))
 
 
-def get_percentage(value, total, decimal_points=4, default=None):
+def get_percentage(value, total, decimal_points=4):
     """
     @param value: value in int or double
     @param total: total in int or double
     @param decimal_points: how many decimal points for return result
-    @param default: default return value if percentage cannot be calculated
     @return: the percentage: value of total.
     """
     return round(
@@ -52,11 +38,9 @@ def divide_or_zero(numerator, denominator, default=None):
     @param numerator: numerator
     @param denominator: denominator
     @param default: default return
-    @return: numerator / denominator
+    @return: numerator // denominator
     """
-    if denominator == 0:
-        return default
-    return old_div(numerator, denominator)
+    return numerator // denominator if denominator != 0 else default
 
 
 def flatten(lst):
@@ -73,3 +57,61 @@ def flatten(lst):
                 yield y
         else:
             yield x
+
+
+_args_kwargs_delimiter = object()  # A unique hashable object.
+
+
+def _function_args_hash(args: Sequence = None,
+                        kwargs: Mapping = None,
+                        _separator=object(),
+                        ) -> int:
+    """Make a hash key out of the args & kwargs for a function call."""
+    _args = tuple(args) if args else ()
+    _kwargs = tuple(kwargs.items()) if kwargs else ()
+    return hash(_args + (_args_kwargs_delimiter,) + _kwargs)
+
+
+def cache_wrapper(cached_function: Callable, *,
+                  expire_seconds: Union[float, int] = None,
+                  ) -> Callable:
+    """Function wrapper that caches the wrapped function's results.
+    Optionally, cached call results can be expired with the expire_seconds argument.
+    See @utils.cache() for the decorator version of this."""
+    expire_delta = timedelta(seconds=expire_seconds) if expire_seconds is not None else timedelta.max
+    items: dict = {}
+
+    def wrapper(*args: Sequence, **kwargs: Mapping) -> Any:
+        now = datetime.now()
+        key = _function_args_hash(args, kwargs)
+        item = items[key] if key in items else None
+        if item and now < item['expiration']:
+            return item['value']
+        else:
+            value = cached_function(*args, **kwargs)
+            expiration = now + expire_delta if expire_delta != timedelta.max else datetime.max
+            items[key] = {'value': value, 'expiration': expiration}
+            return value
+
+    return wrapper
+
+
+def cache(cached_function: Callable = None, *,
+          expire_seconds: Union[float, int] = None
+          ) -> Callable:
+    """Caching decorator with optional expiration in seconds.
+
+    Example:
+        >>> from urllib.request import urlopen
+        >>> @cache(expire_seconds=60)
+        ... def get_page(url):
+        ...     with urlopen(url) as r:
+        ...         page = r.read().decode()
+        ...     return page
+    """
+    if cached_function is None:
+        return partial(cache, expire_seconds=expire_seconds)
+    else:
+        wrapper = cache_wrapper(cached_function, expire_seconds=expire_seconds)
+        update_wrapper(wrapper, cached_function)
+        return wrapper

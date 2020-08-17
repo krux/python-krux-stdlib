@@ -1,32 +1,16 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Instrument code for profiling and operational metrics.
 """
+from __future__ import generator_stop
 
-######################
-# Standard Libraries #
-######################
-from __future__ import absolute_import
 from contextlib import contextmanager
 
-#########################
-# Third Party Libraries #
-#########################
-from builtins import object
-import statsd       # for the dummy client to wrap the callables
+import kruxstatsd  # the default handler
+import statsd  # for the dummy client to wrap the callables
 
-######################
-# Internal Libraries #
-######################
-import kruxstatsd   # the default handler
-from krux.constants import (
-    DEFAULT_STATSD_HOST,
-    DEFAULT_STATSD_PORT,
-    DEFAULT_STATSD_ENV,
-)
+from krux.constants import (DEFAULT_STATSD_ENV, DEFAULT_STATSD_HOST,
+                            DEFAULT_STATSD_PORT)
 
 
 def get_stats(
@@ -89,12 +73,12 @@ def get_stats(
 class DummyStatsClient(object):
     """A dummy StatsClient compatible object that does nothing"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         # So we have the object ready for wrapping
-        self._client = statsd.StatsClient()
+        self._client = statsd.StatsClient(*args, **kwargs)
 
     def __getattr__(self, attr):
-        """Proxies calls to ``statsd.StatsClient`` methods. Silently pass'es.
+        """Proxies calls to ``statsd.StatsClient`` methods. Silently passes.
         """
         attr = getattr(self._client, attr)
 
@@ -104,7 +88,7 @@ class DummyStatsClient(object):
             # see http://docs.python.org/2/library/contextlib.html for details.
             # 'yield' makes sure the decorated function is called
             @contextmanager
-            def wrapper(*args, **kwargs):
+            def wrapper(*args, **kwargs):  # pylint: disable=unused-argument
                 yield
             return wrapper
         return attr

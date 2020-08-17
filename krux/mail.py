@@ -1,43 +1,14 @@
-# -*- coding: utf-8 -*-
-#
-# © 2014-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Classes & Functions for email.
 """
-######################
-# Standard Libraries #
-######################
-from __future__ import absolute_import
-from past.builtins import basestring
-from email.mime.text import MIMEText
+from __future__ import generator_stop
+
 from email.header import Header
+from email.mime.text import MIMEText
+from smtplib import SMTP
 
-# I import all of these exception types so that users of the sendmail
-# function can import them from this module instead of magically knowing
-# where they come from in the standard library.
-from smtplib import (
-    SMTP,
-    SMTPException,
-    SMTPServerDisconnected,
-    SMTPResponseException,
-    SMTPSenderRefused,
-    SMTPRecipientsRefused,
-    SMTPDataError,
-    SMTPConnectError,
-    SMTPHeloError,
-    SMTPAuthenticationError,
-)
-
-#####################
-# General Libraries #
-#####################
 import pystache
-
-####################
-# Internal Imports #
-####################
-
 
 CHARSET = 'utf-8'
 
@@ -113,14 +84,14 @@ def sendmail(
     This function returns an email.mime.MIMEText object representing the
     email that was sent.
     """
-    if isinstance(recipients, basestring):
-        recipients = [ recipients ]
+    if isinstance(recipients, str):
+        recipients = [recipients]
 
     if bcc is None:
         bcc = []
 
-    if isinstance(bcc, basestring):
-        bcc = [ bcc ]
+    if isinstance(bcc, str):
+        bcc = [bcc]
 
     if headers is None:
         headers = {}

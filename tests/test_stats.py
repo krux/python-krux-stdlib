@@ -1,25 +1,15 @@
-# -*- coding: utf-8 -*-
-#
-# © 2013-2017 Salesforce.com, inc.
-#
+# Copyright 2013-2020 Salesforce.com, inc.
 """
 Unit tests for the krux.stats module.
 """
-from __future__ import absolute_import
-__author__ = 'Jos Boumans'
+from __future__ import generator_stop
 
-#
-# Third Party Libraries #
-#
+import statsd
 from nose.tools import assert_true, assert_false
 
-#
-# Internal Libraries #
-#
-import krux.stats
-from krux.stats import DummyStatsClient
 import kruxstatsd
-import statsd
+
+import krux.stats
 
 
 def test_get_stats():
@@ -30,7 +20,7 @@ def test_get_stats():
 
     # object, and of the right class?
     assert_true(stats)
-    assert_false(isinstance(stats, DummyStatsClient))
+    assert_false(isinstance(stats, krux.stats.DummyStatsClient))
 
 
 def test_get_dummy_stats():
@@ -41,7 +31,7 @@ def test_get_dummy_stats():
 
     # object, and of the right class?
     assert_true(stats)
-    assert_true(isinstance(stats, DummyStatsClient))
+    assert_true(isinstance(stats, krux.stats.DummyStatsClient))
 
 
 def test_get_legacy_client():
