@@ -24,7 +24,7 @@ pytest-runner  = "~=5.2"
 [packages]
 kruxstatsd = {version = "~=0.3", source = "kruxfoss"}
 lockfile = "~=0.12"
-pystache = "~=0.5"
+pystache = "~=0.6.0"
 
 [requires]
 python_version = "3.6"
